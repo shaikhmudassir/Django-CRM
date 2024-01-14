@@ -1,0 +1,8 @@
+#ChatForm{
+    display: flex;
+    width: -webkit-fill-available;
+}
+
+#ChatContainer{
+    scroll-behavior: auto;
+}

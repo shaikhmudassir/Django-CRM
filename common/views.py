@@ -2,6 +2,7 @@ import json
 import secrets
 from multiprocessing import context
 from re import template
+from django.http import HttpResponseRedirect
 
 import requests
 from django.contrib.auth.base_user import BaseUserManager
@@ -382,7 +383,8 @@ class OrgProfileCreateView(APIView):
         request=OrgProfileCreateSerializer
     )
     def post(self, request, format=None):
-        data = request.data
+        data = request.data.copy()
+        print(data)
         data['api_key'] = secrets.token_hex(16)
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
@@ -909,3 +911,21 @@ class GoogleLoginView(APIView):
         response['refresh_token'] = str(token)
         response['user_id'] = user.id
         return Response(response)
+
+class LoginSetup(View):
+    def get(self, request):
+        client_id = '514957663500-l9eugamcqa0o60lpgtmajvp6t41hgt63.apps.googleusercontent.com' # localhost
+        redirect_uri = 'http://127.0.0.1:8000/api/callback'
+        # client_id = '514957663500-6hs1qqbfltmaenpt3a27g7rlq0tgc4q6.apps.googleusercontent.com'
+        # redirect_uri = 'http://127.0.0.1:5500/callback.html'
+        # redirect_uri = 'https://whatsappcrm.pythonanywhere.com/web/callback.html'
+        response_type ='token'
+        scope = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
+        include_granted_scopes = 'true'
+        url = f'https://accounts.google.com/o/oauth2/v2/auth?client_id={client_id}&redirect_uri={redirect_uri}&response_type={response_type}&scope={scope}&include_granted_scopes={include_granted_scopes}'
+        return HttpResponseRedirect(url)
+        # return render(request, 'loginsetup.html')
+
+class Callback(View):
+    def get(self, request):
+        return render(request, 'callback.html')

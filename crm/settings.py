@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "invoices",
     "events",
     "teams",
+    "chat",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,26 @@
+<script type="text/JavaScript">
+
+    url = window.location.href
+    access_token = url.split('#')[1].split('&')[0].split('=')[1]
+    // Unsupported media type \"text/plain;charset=UTF-8\" in request.
+    const request = new Request('http://127.0.0.1:8000/api/auth/google/')
+    const response = fetch(request, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+          token: access_token
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      localStorage.setItem('access_token', data.access_token);
+      location.replace('http://127.0.0.1:8000/api/chat/chat/ ')
+    })
+    .catch(error => {
+        console.log(error)
+    })
+        
+</script>
