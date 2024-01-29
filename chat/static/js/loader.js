@@ -22,6 +22,7 @@
   });
 
   const response = await fetch(request);
+  document.querySelector('#message').value = "";
   if (response.status === 200) {
     console.log('Message sent!');
   } else {
@@ -67,7 +68,7 @@
 
 
   function showChat(contact_id, number, name, lead_id) {
-
+    closeLeadEdit();
     document.getElementById("rightSide").style.display = "flex";
     document.getElementById("Intro-Left").style.display = "none";
     document.cookie = "number=" + number;

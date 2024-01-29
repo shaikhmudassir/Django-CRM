@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .message_helper import get_templated_message_input, get_text_message_input, send_message
 from asgiref.sync import sync_to_async, async_to_sync
-from .APIs import config
 from .models import Messages
 from leads.models import Lead
 from contacts.models import Contact
@@ -13,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
-import requests, json, ast
+import requests, json, os
 
 class JsonMapper:
     def __init__(self, data):
@@ -35,7 +34,7 @@ class ReceiveMessageView(View):
             return self.get(request, *args, **kwargs)
 
     def get(self, request):
-        if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == config.WEBHOOK_VERIFICATION_TOKEN:
+        if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
             return HttpResponse(request.GET['hub.challenge'])
         else:
             return HttpResponse(400)
@@ -61,10 +60,10 @@ class ReceiveMessageView(View):
             message = messages[0].text.body
 
             if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
-                lead_url = config.API_BASE_URL + '/leads/'
-                contact_url = config.API_BASE_URL + '/contacts/'
+                lead_url = os.environ['BACKEND_API_BASE_URL'] + '/leads/'
+                contact_url = os.environ['BACKEND_API_BASE_URL'] + '/contacts/'
 
-                headers= {'Authorization':'Bearer ' + config.api_access_token, 'org':config.org, 'Content-Type':'application/json'}
+                headers= {'Authorization':'Bearer ' + os.environ['BACKEND_API_TOKEN'], 'org':os.environ['API_ORG'], 'Content-Type':'application/json'}
                 email = name.split()[0] + '@email.temp'
                 lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
                 contact_payload = {'first_name':name, 'last_name':name, 'mobile_number':number, 'primary_email':email}
@@ -123,8 +122,8 @@ class MessageListView(APIView):
 
 class DisplayChatView(View):
     async def get(self, request):
-        contact_url = config.API_BASE_URL + '/contacts/'
-        req = requests.get(contact_url, headers={'Authorization':'Bearer ' + config.api_access_token, 'org':config.org})
+        contact_url = os.environ['BACKEND_API_BASE_URL'] + '/contacts/'
+        req = requests.get(contact_url, headers={'Authorization':'Bearer ' + os.environ['BACKEND_API_TOKEN'], 'org':os.environ['API_ORG']})
         req = json.loads(req.content.decode("UTF-8"))
         contact_list = req['contact_obj_list']
 
