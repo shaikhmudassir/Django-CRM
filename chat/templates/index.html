@@ -138,7 +138,7 @@
             <!-- Constact List -->
             <div class="chats">
                 {% for contact in contact_list %}
-                    <div class="block chat-list" onclick="showChats('{{contact.id}}',' {{contact.phone}}', '{{contact.first_name}}')">
+                    <div class="block chat-list" onclick="showChat('{{contact.id}} ',' {{contact.mobile_number}} ', '{{contact.first_name}}' , '{{contact.lead}}')">
                         <!-- Img -->
                         <div class="imgBox">
                             <img src="{% static '/images/Avatar-7.jpeg' %}" class="cover">

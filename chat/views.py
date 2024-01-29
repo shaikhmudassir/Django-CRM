@@ -109,9 +109,8 @@ class SendMessageView(View):
         
 class MessageListView(APIView):
     def get(self, request):
-        id = request.GET.get('contact')
-        # messages = Messages.objects.all().filter(contact=id)
-        messages = Messages.objects.all().filter(lead=id)
+        contact_id = request.GET.get('contact')
+        messages = Messages.objects.all().filter(contact=contact_id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
     
@@ -124,11 +123,15 @@ class MessageListView(APIView):
 
 class DisplayChatView(View):
     async def get(self, request):
-        # contact_url = config.API_BASE_URL + '/contacts/'
-        contact_url = config.API_BASE_URL + '/leads/'
+        contact_url = config.API_BASE_URL + '/contacts/'
         req = requests.get(contact_url, headers={'Authorization':'Bearer ' + config.api_access_token, 'org':config.org})
         req = json.loads(req.content.decode("UTF-8"))
-        # contact_list = req.json()['contact_obj_list']
-        contact_list = req['open_leads']['open_leads']
+        contact_list = req['contact_obj_list']
+
+        for contact in contact_list:
+            lead_id_async = sync_to_async(Lead.objects.get)
+            lead_id = await lead_id_async(phone=contact['mobile_number'])
+            contact['lead'] = lead_id.id
+            
         return render(request, 'index.html', {'contact_list':contact_list})
     

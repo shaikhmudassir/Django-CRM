@@ -41,12 +41,17 @@
 
   const LeadformData = new FormData(LeadForm);
   
-  const request = new Request('http://127.0.0.1:8000/api/leads/' + ID + '/', {
+  const request = new Request('http://127.0.0.1:8000/api/leads/' + lead_id + '/', {
     method: 'PUT',
     body: LeadformData,
     headers: headers
   });
-  console.log(LeadformData)
+  const status = ["converted", "in process"];
+  
+  if (status.includes(LeadformData.get('status')) && LeadformData.get('opportunity_amount') == ""){
+    alert("Please Enter opportunity amount")
+    return
+  }
   const response = await fetch(request);
   if (response.status === 200) {
     console.log('Lead with given ID edited');
@@ -61,13 +66,14 @@
   });
 
 
-  function showChats(ID, number, name) {
+  function showChat(contact_id, number, name, lead_id) {
 
     document.getElementById("rightSide").style.display = "flex";
     document.getElementById("Intro-Left").style.display = "none";
     document.cookie = "number=" + number;
-    document.cookie = "ID=" + ID;
+    document.cookie = "contact_id=" + contact_id;
     document.cookie = "name=" + name;
+    document.cookie = "lead_id=" + lead_id;
   
   
   document.querySelector(".rightSide").querySelector(".header").querySelector("h4").innerHTML =  
@@ -77,10 +83,10 @@
     }
   
   function loadChats() {
-    ID = getCookie('ID');
+    contact_id = getCookie('contact_id');
     number = getCookie('number');
   
-    fetch('http://127.0.0.1:8000/api/chat/messages/?contact=' + ID)
+    fetch('http://127.0.0.1:8000/api/chat/messages/?contact=' + contact_id)
     .then(function (response) {
       return response.json();
     })
@@ -154,8 +160,8 @@
     }
 
   function LeadEditForm() {
-    ID = getCookie('ID')
-    fetch('http://127.0.0.1:8000/api/leads/' + ID + '/', {headers})
+    lead_id = getCookie('lead_id')
+    fetch('http://127.0.0.1:8000/api/leads/' + lead_id + '/', {headers})
     .then(response => {
       return response.json();
     })

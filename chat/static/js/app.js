@@ -123,7 +123,7 @@ function closeChatAbout() {
     document.getElementById("ChatAbout").style.display = "none";
 }
 
-// Open LeadEdit from new chat
+// Custom: Open LeadEdit from new chat
 function openLeadEdit() {
     LeadEditForm();
     document.getElementById("LeadEdit").style.display = "block";
