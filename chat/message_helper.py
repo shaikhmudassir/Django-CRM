@@ -8,16 +8,16 @@ LICENSE file in the root directory of this source tree.
 
 import aiohttp
 import json
-from .APIs import config
+import os
 
 async def send_message(data):
   headers = {
     "Content-type": "application/json",
-    "Authorization": f"Bearer {config.ACCESS_TOKEN}",
+    "Authorization": f"Bearer {os.environ['WHATSAPP_API_TOKEN']}",
     }
   
   async with aiohttp.ClientSession() as session:
-    url = 'https://graph.facebook.com' + f"/{config.VERSION}/{config.PHONE_NUMBER_ID_1}/messages"
+    url = 'https://graph.facebook.com' + f"/{os.environ['WHATSAPP_API_VERSION']}/{os.environ['WHATSAPP_BUSINESS_NUMBER_AAFIYAHTECH']}/messages"
     try:
       async with session.post(url, data=data, headers=headers) as response:
         if response.status == 200:
