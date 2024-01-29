@@ -167,7 +167,6 @@
     })
     .then(data => {
       const form = document.querySelector('#LeadEditForm');
-      document.querySelector('#title').value = data.lead_obj.title;
       document.querySelector('#first_name').value = data.lead_obj.first_name;
       document.querySelector('#last_name').value = data.lead_obj.last_name;
       document.querySelector('#account_name').value = data.lead_obj.account_name;
@@ -175,24 +174,12 @@
       document.querySelector('#email').value = data.lead_obj.email;
       document.querySelector('#lead_attachment').value = data.lead_obj.lead_attachment;
       document.querySelector('#opportunity_amount').value = data.lead_obj.opportunity_amount;
-      document.querySelector('#website').value = data.lead_obj.website;
       document.querySelector('#description').value = data.lead_obj.description;
-      document.querySelector('#teams').value = data.lead_obj.teams;
       document.querySelector('#assigned_to').value = data.lead_obj.assigned_to;
-      document.querySelector('#contacts').value = data.lead_obj.contacts;
       document.querySelector('#status').value = data.lead_obj.status;
-      document.querySelector('#source').value = data.lead_obj.source;
-      document.querySelector('#address_line').value = data.lead_obj.address_line;
-      document.querySelector('#street').value = data.lead_obj.street;
-      document.querySelector('#city').value = data.lead_obj.city;
-      document.querySelector('#state').value = data.lead_obj.state;
-      document.querySelector('#postcode').value = data.lead_obj.postcode;
       document.querySelector('#country').value = data.lead_obj.country;
       document.querySelector('#tags').value = data.lead_obj.tags;
       document.querySelector('#company').value = data.lead_obj.company;
-      document.querySelector('#probability').value = data.lead_obj.probability;
-      document.querySelector('#industry').value = data.lead_obj.industry;
-      document.querySelector('#skype_ID').value = data.lead_obj.skype_ID;
     })
     .catch(error => {
       //handle error
