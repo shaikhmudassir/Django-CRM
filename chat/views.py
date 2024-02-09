@@ -96,7 +96,7 @@ class ReceiveMessageView(View):
                     return HttpResponse(status=204)
             else:
                 whatsapp_number = WhatsappContacts.objects.get(number=number)
-
+                print(whatsapp_number.contact.id)
 
                 message_data = {
                     'number': whatsapp_number.id,
@@ -136,9 +136,10 @@ class SendMessageView(View):
         return HttpResponse(status=status.HTTP_200_OK)
 
 class MessageListView(APIView):
-    def get(self, request):
-        contact_id = request.GET.get('contact_id')
-        messages = Messages.objects.all().filter(contact=contact_id)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, contact_id):
+        messages = Messages.objects.all().filter(number=contact_id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
     
@@ -148,6 +149,15 @@ class MessageListView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
+
+class IndexView(View):
+    def get(self, request):
+        return render(request, "channel_index.html")
+
+class RoomView(View):
+    def get(self, request, room_name):
+        return render(request, "room.html", {"room_name": room_name})
+    
 
 # class ReceiveMessageView(View):
     
