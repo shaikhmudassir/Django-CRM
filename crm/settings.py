@@ -37,6 +37,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    "daphne",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",
@@ -117,6 +118,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "crm.wsgi.application"
+
+# Daphne
+ASGI_APPLICATION = "crm.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
