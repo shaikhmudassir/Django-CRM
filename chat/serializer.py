@@ -9,7 +9,8 @@ class WhatsappContactsSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Messages
-        fields = ('number', 'message', 'isOpponent')
+        fields = '__all__'
+
 
 
 

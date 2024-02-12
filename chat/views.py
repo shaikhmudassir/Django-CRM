@@ -82,9 +82,10 @@ class ReceiveMessageView(View):
                 contact = Contact.objects.get(mobile_number=number)
 
                 WhatsappContacts.objects.create(lead=lead, contact=contact, name=name, number=number)
+                print(whatsapp_number.contact.id)
+                print(whatsapp_number.wa_id)
                 message_data = {
-                    'lead': lead.id,
-                    'contact': contact.id,
+                    'number': whatsapp_number.wa_id,
                     'message': message,
                     'isOpponent': True
                 }
@@ -97,9 +98,11 @@ class ReceiveMessageView(View):
             else:
                 whatsapp_number = WhatsappContacts.objects.get(number=number)
                 print(whatsapp_number.contact.id)
+                print(whatsapp_number.wa_id)
+    
 
                 message_data = {
-                    'number': whatsapp_number.id,
+                    'number': whatsapp_number.wa_id,
                     'message': message,
                     'isOpponent': True
                 }
@@ -110,36 +113,11 @@ class ReceiveMessageView(View):
                 else:
                     return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class SendMessageView(View):
-    
-    async def post(self, request):
-        message = request.POST.get('message')
-        number = request.POST.get('contact')
-        if message == '/flight':
-            template_data = get_templated_message_input(number, {'origin':'Mumbai', 'destination':'Delhi', 'time':'10:00 AM'})
-            await send_message(template_data)
-        else:
-            data = get_text_message_input(number, message)
-            await send_message(data)
-    
-        is_contact_exists_async = sync_to_async(Lead.objects.filter(phone=number).exists)
-
-        if await is_contact_exists_async():
-            contact_async = sync_to_async(Contact.objects.get)
-            contact = await contact_async(mobile_number=number)
-            
-            lead_async = sync_to_async(Lead.objects.get)
-            lead = await lead_async(phone=number)
-
-            create_message_async = sync_to_async(Messages.objects.create)
-            await create_message_async(lead=lead, contact=contact, message=message, is_sent=True)
-        return HttpResponse(status=status.HTTP_200_OK)
-
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, contact_id):
-        messages = Messages.objects.all().filter(number=contact_id)
+    def get(self, request, wa_id):
+        messages = Messages.objects.all().filter(number=wa_id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
     
@@ -158,6 +136,35 @@ class RoomView(View):
     def get(self, request, room_name):
         return render(request, "room.html", {"room_name": room_name})
     
+# class SendMessageView(APIView):
+    
+#     async def post(self, request):
+#         Whatsapp_contact_id = request.POST.get('contact_id')
+#         message = request.POST.get('message')
+#         number = request.POST.get('number')
+
+#         if message == '/flight':
+#             template_data = get_templated_message_input(number, {'origin':'Mumbai', 'destination':'Delhi', 'time':'10:00 AM'})
+#             await send_message(template_data)
+#         else:
+#             data = get_text_message_input(number, message)
+#             await send_message(data)
+
+#         create_message_async = sync_to_async(Messages.objects.create)
+#         await create_message_async(number=Whatsapp_contact_id, message=message, isOpponent=False)
+    
+#         # is_contact_exists_async = sync_to_async(Lead.objects.filter(phone=number).exists)
+
+#         # # if await is_contact_exists_async():
+#         # #     contact_async = sync_to_async(Contact.objects.get)
+#         # #     contact = await contact_async(mobile_number=number)
+            
+#         # #     lead_async = sync_to_async(Lead.objects.get)
+#         # #     lead = await lead_async(phone=number)
+
+#         # #     create_message_async = sync_to_async(Messages.objects.create)
+#         # #     await create_message_async(lead=lead, contact=contact, message=message, is_sent=True)
+#         return HttpResponse(status=status.HTTP_200_OK)
 
 # class ReceiveMessageView(View):
     
