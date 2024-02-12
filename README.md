@@ -58,13 +58,24 @@ Install the requirements
 pip install -r requirements.txt
 ```
 
-Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
+Install Daphne
 
 ```
+python -m pip install -U channels["daphne"]
+```
+
+Install aiohttp
+
+```
+pip install aiohttp
+```
+
+Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
+
+
 Create Migrations
 
 ```
-
 python manage.py makemigrations
 
 ```
@@ -72,7 +83,6 @@ python manage.py makemigrations
 Run Migrations
 
 ```
-
 python manage.py migrate
 
 ```
@@ -80,7 +90,6 @@ python manage.py migrate
 Run Development Server
 
 ```
-
 python manage.py runserver
 
 ```
