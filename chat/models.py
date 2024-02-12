@@ -1,7 +1,8 @@
 from django.db import models
 from leads.models import Lead
 from contacts.models import Contact
-    
+from django.utils.crypto import get_random_string
+
 def format_time(time_obj):
     return time_obj.strftime("%H:%M %p")
 
@@ -11,11 +12,11 @@ class WhatsappContacts(models.Model):
         ('READ', 'Read'),
         ('DELIVERED', 'Delivered'),
     )
-    
+    wa_id = models.CharField(default=get_random_string(length=32), unique=True)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    number = models.CharField(max_length=100)
+    number = models.CharField(max_length=100, unique=True)
     profile_image = models.ImageField(upload_to='profile_images/')
     # Change with each message
     last_message = models.TextField(default="")
@@ -30,7 +31,7 @@ class WhatsappContacts(models.Model):
     #     super().save(*args, **kwargs)
 
 class Messages(models.Model):
-    number = models.ForeignKey(WhatsappContacts, on_delete=models.CASCADE)
+    number = models.ForeignKey(WhatsappContacts, to_field='wa_id', on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.TimeField(auto_now_add=True)
     date = models.DateField(auto_now_add=True)

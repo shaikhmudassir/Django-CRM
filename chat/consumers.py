@@ -1,8 +1,7 @@
 import json
-
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-# from .models import Chat
+from .models import Messages, WhatsappContacts
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -10,9 +9,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = "chat_%s" % self.room_name
         print(self.room_group_name)
-        # Join room group
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
         # message = await self.fetch_messages()
@@ -23,7 +21,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # )
 
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     # Receive message from WebSocket
@@ -31,11 +28,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
 
-        # await self.save_message(message)
+        await self.save_message(message)
         # message = await self.fetch_messages()
         
-
-
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name, {"type": "chat_message", "message": message}
@@ -50,10 +45,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"message": message}))
 
 
-    # @database_sync_to_async
-    # def save_message(self, message):
-    #     Chat.objects.create(message=message)
-    #     return message
+    @database_sync_to_async
+    def save_message(self, message):
+        wa_instance = WhatsappContacts.objects.get(wa_id=self.room_name)
+        Messages.objects.create(message=message, number=wa_instance)
+        
     
     # @database_sync_to_async
     # def fetch_messages(self):
