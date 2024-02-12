@@ -12,7 +12,7 @@ class WhatsappContacts(models.Model):
         ('READ', 'Read'),
         ('DELIVERED', 'Delivered'),
     )
-    wa_id = models.CharField(default=get_random_string(length=32), unique=True)
+    wa_id = models.CharField(default=get_random_string(length=32), unique=True, max_length=50)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
