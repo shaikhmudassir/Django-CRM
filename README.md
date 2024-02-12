@@ -70,8 +70,18 @@ Install aiohttp
 pip install aiohttp
 ```
 
-Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
+- Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
 
+- Replace DATABASE attribute with the following database attribute
+
+```
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+```
 
 Create Migrations
 
@@ -262,4 +272,7 @@ report a bug or request new feature. we are glad to help.
 For commercial support [Contact us](https://micropyramid.com/contact-us/)
 
 # Trigger deploy
+
+```
+
 ```
