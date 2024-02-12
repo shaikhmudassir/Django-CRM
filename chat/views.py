@@ -34,12 +34,6 @@ class WhatsappContactsView(APIView):
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
     
-    def post(self, request):
-        serializer = WhatsappContactsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
 
 class ReceiveMessageView(View):
 
@@ -120,13 +114,6 @@ class MessageListView(APIView):
         messages = Messages.objects.all().filter(number=wa_id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = MessageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
 
 class IndexView(View):
     def get(self, request):
