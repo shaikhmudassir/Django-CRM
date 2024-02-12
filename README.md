@@ -58,22 +58,31 @@ Install the requirements
 pip install -r requirements.txt
 ```
 
+Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
+
+```
 Create Migrations
 
 ```
+
 python manage.py makemigrations
+
 ```
 
 Run Migrations
 
 ```
+
 python manage.py migrate
+
 ```
 
 Run Development Server
 
 ```
+
 python manage.py runserver
+
 ```
 
 ## Runcode
@@ -111,9 +120,11 @@ We recommend ubuntu 20.04. These instructions are verified for ubuntu 20.04.
 #### To install system requirments
 
 ```
+
 sudo apt update && sudo apt upgrade -y
 
 sudo apt install python-is-python3 xvfb libfontconfig wkhtmltopdf python3-dev python3-pip build-essential libssl-dev libffi-dev python3-venv redis-server redis-tools virtualenv -y
+
 ```
 
 #### Install dependencies
@@ -121,6 +132,7 @@ sudo apt install python-is-python3 xvfb libfontconfig wkhtmltopdf python3-dev py
 ##### Optional (based on personal choice)
 
 ```
+
 sudo apt update && sudo apt upgrade -y && sudo apt install zsh python3-virtualenv
 
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -128,6 +140,7 @@ sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools
 pip install virtualenvwrapper
 
 echo "source /home/ubuntu/.local/bin/virtualenvwrapper.sh" >> ~/.zshrc
+
 ```
 
 If you want to install postgres, follow https://www.postgresql.org/download/
@@ -135,8 +148,10 @@ If you want to install postgres, follow https://www.postgresql.org/download/
 #### To modify postgresql root password
 
 ```
+
 sudo -u postgres psql
 ALTER USER postgres WITH PASSWORD 'root';
+
 ```
 
 #### Create and activate a virtual environment.
@@ -144,21 +159,27 @@ ALTER USER postgres WITH PASSWORD 'root';
 if you installed and configured virtualenv wrapper then use the following
 
 ```
+
 mkvirtualenv <env_name>
 workon <env_name>
+
 ```
 
 or else
 
 ```
+
 virtualenv venv
 source venv/bin/activate
+
 ```
 
 Install the project's dependency after activating env
 
 ```
+
 pip install -r requirements.txt
+
 ```
 
 ### Env variables
@@ -170,8 +191,10 @@ pip install -r requirements.txt
 in order to use docker, please run the next commands after cloning repo:
 
 ```
+
 docker build -t djcrm:1 -f docker/Dockerfile .
 docker-compose -f docker/docker-compose.yml up
+
 ```
 
 **Note**: you must have docker/docker-compose installed on your host.
@@ -179,8 +202,10 @@ docker-compose -f docker/docker-compose.yml up
 ### next steps
 
 ```
+
 python manage.py migrate
 python manage.py runserver
+
 ```
 
 - Then open http://localhost:8000/swagger/ in your borwser to explore API.
@@ -194,10 +219,12 @@ celery -A crm worker --loglevel=INFO
 ### Useful tools and packages
 
 ```
+
 pipdeptree # to see pip dependancy tree
 black # to format code to meet python coding standards
-pip-check -H  # to see upgradable packages
+pip-check -H # to see upgradable packages
 isort # to sort imports in python
+
 ```
 
 ### Community
@@ -226,3 +253,4 @@ report a bug or request new feature. we are glad to help.
 For commercial support [Contact us](https://micropyramid.com/contact-us/)
 
 # Trigger deploy
+```
