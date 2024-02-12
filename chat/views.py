@@ -106,6 +106,7 @@ class ReceiveMessageView(View):
                     return HttpResponse(status=status.HTTP_200_OK)
                 else:
                     return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
 
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
