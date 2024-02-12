@@ -7,18 +7,82 @@ the basic features of CRM to start with. We welcome code contributions
 and feature requests via github.
 
 This is divided into three parts
+
 1. Backend API [Django CRM](https://github.com/MicroPyramid/Django-CRM)
 2. Frontend UI [React CRM](https://github.com/MicroPyramid/react-crm "React CRM")
 3. Mobile app [Flutter CRM]("https://github.com/MicroPyramid/flutter-crm")
 
-## Runcode 
+## Aafiyah Tech Setup
 
- Runcode is online developer workspace. It is cloud based simple, secure and ready to code workspaces, assuring high performance & fully configurable coding environment. With runcode you can run django-crm(API) with one-click.
+Clone The Repo
 
+```
+https://github.com/shaikhmudassir/Django-CRM.git
+```
+
+Switch to the directory
+
+```
+cd Django-CRM
+```
+
+Switch to the branch
+
+```
+git checkout whatsapp
+```
+
+Create a virtual environment
+
+```
+python3 -m venv env
+```
+
+Activate the virtual environment
+
+Linux
+
+```
+source env/bin/activate
+```
+
+Windows
+
+```
+env\Scripts\activate
+```
+
+Install the requirements
+
+```
+pip install -r requirements.txt
+```
+
+Create Migrations
+
+```
+python manage.py makemigrations
+```
+
+Run Migrations
+
+```
+python manage.py migrate
+```
+
+Run Development Server
+
+```
+python manage.py runserver
+```
+
+## Runcode
+
+Runcode is online developer workspace. It is cloud based simple, secure and ready to code workspaces, assuring high performance & fully configurable coding environment. With runcode you can run django-crm(API) with one-click.
 
 - Open below link to create django-crm workspace on [RunCode](https://runcode.io/ "RunCode"). It will cretae django-crm API
 
-    [![RunCode](https://runcode-app-public.s3.amazonaws.com/images/dark_btn.png)](https://runcode.io)
+  [![RunCode](https://runcode-app-public.s3.amazonaws.com/images/dark_btn.png)](https://runcode.io)
 
 - After running API, Go to Frontend UI [React CRM](https://github.com/MicroPyramid/react-crm "React CRM") project to cretae new workpsace with runcode.
 
@@ -27,7 +91,9 @@ This is divided into three parts
 Please [Click Here](http://django-crm.readthedocs.io "Click Here") for latest documentation.
 
 ## Project Modules
+
 This project contains the following modules:
+
 - Contacts
 - Companies
 - Leads
@@ -65,6 +131,7 @@ echo "source /home/ubuntu/.local/bin/virtualenvwrapper.sh" >> ~/.zshrc
 ```
 
 If you want to install postgres, follow https://www.postgresql.org/download/
+
 #### To modify postgresql root password
 
 ```
@@ -73,16 +140,21 @@ ALTER USER postgres WITH PASSWORD 'root';
 ```
 
 #### Create and activate a virtual environment.
+
 if you installed and configured virtualenv wrapper then use the following
-``` 
+
+```
 mkvirtualenv <env_name>
 workon <env_name>
 ```
+
 or else
+
 ```
 virtualenv venv
 source venv/bin/activate
 ```
+
 Install the project's dependency after activating env
 
 ```
@@ -91,28 +163,29 @@ pip install -r requirements.txt
 
 ### Env variables
 
-* Then refer to `env.md` for environment variables and keep those in the `.env` file in the current folder as your project is in.
-
+- Then refer to `env.md` for environment variables and keep those in the `.env` file in the current folder as your project is in.
 
 ### Docker / docker-compose
+
 in order to use docker, please run the next commands after cloning repo:
+
 ```
 docker build -t djcrm:1 -f docker/Dockerfile .
 docker-compose -f docker/docker-compose.yml up
 ```
 
-**Note**: you must have docker/docker-compose installed on your host. 
-### next steps
+**Note**: you must have docker/docker-compose installed on your host.
 
+### next steps
 
 ```
 python manage.py migrate
 python manage.py runserver
 ```
+
 - Then open http://localhost:8000/swagger/ in your borwser to explore API.
 
 - After running API, Go to Frontend UI [React CRM](https://github.com/MicroPyramid/react-crm "React CRM") project to configure Fronted UI to interact with API.
-
 
 ## Start celery worker in another terminal window
 
@@ -131,11 +204,11 @@ isort # to sort imports in python
 
 Get help or stay up to date.
 
--   [Issues](<https://github.com/MicroPyramid/Django-CRM/issues>)
--   Follow [@micropyramid](<https://twitter.com/micropyramid>) on Twitter
--   Ask questions on [Stack Overflow](<https://stackoverflow.com/questions/tagged/django-crm>)
--   Chat with community [Gitter](<https://gitter.im/MicroPyramid/Django-CRM>)
--   For customisations, email to <django-crm@micropyramid.com>
+- [Issues](https://github.com/MicroPyramid/Django-CRM/issues)
+- Follow [@micropyramid](https://twitter.com/micropyramid) on Twitter
+- Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/django-crm)
+- Chat with community [Gitter](https://gitter.im/MicroPyramid/Django-CRM)
+- For customisations, email to <django-crm@micropyramid.com>
 
 ## Credits
 
@@ -153,4 +226,3 @@ report a bug or request new feature. we are glad to help.
 For commercial support [Contact us](https://micropyramid.com/contact-us/)
 
 # Trigger deploy
-
