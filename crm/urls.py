@@ -17,6 +17,7 @@ from rest_framework import permissions
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from django.contrib import admin
 
 app_name = "crm"
 
@@ -31,6 +32,7 @@ urlpatterns = [
         "logout/", views.LogoutView.as_view(), {"next_page": "/login/"}, name="logout"
     ),
     path("admin/", include(wagtailadmin_urls)),
+    path("django-admin/", admin.site.urls),
     path("documents/", include(wagtaildocs_urls)),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
