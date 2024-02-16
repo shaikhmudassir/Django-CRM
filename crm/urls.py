@@ -17,7 +17,6 @@ from rest_framework import permissions
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
-from django.contrib import admin
 
 app_name = "crm"
 
