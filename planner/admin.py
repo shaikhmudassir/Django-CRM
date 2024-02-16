@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from planner.models import  Reminder # Event,s
+from .models import  Reminder
 
 # Register your models here.
 
