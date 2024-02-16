@@ -70,6 +70,12 @@ Install aiohttp
 pip install aiohttp
 ```
 
+Install
+
+```
+pip install -U 'Twisted[tls,http2]'
+```
+
 - Create new `.env` file and copy the content from `aafiyahtech_env.txt` file
 
 - Replace DATABASE attribute with the following database attribute
