@@ -15,7 +15,13 @@ from rest_framework.response import Response
 from .models import WhatsappContacts, Messages
 from .serializer import WhatsappContactsSerializer
 from rest_framework.permissions import IsAuthenticated
-import requests, json, os
+from heyoo import WhatsApp
+import requests, json, os, logging
+
+messenger = WhatsApp(os.getenv("WHATSAPP_API_TOKEN"),  os.getenv("WHATSAPP_BUSINESS_NUMBER_AAFIYAHTECH"))
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 class JsonMapper:
     def __init__(self, data):
@@ -34,7 +40,6 @@ class WhatsappContactsView(APIView):
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
     
-
 class ReceiveMessageView(View):
 
     def dispatch(self, request, *args, **kwargs):
@@ -45,69 +50,125 @@ class ReceiveMessageView(View):
 
     def get(self, request):
         if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
-            return HttpResponse(request.GET['hub.challenge'])
-        else:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            logging.info("Verified webhook")
+            return HttpResponse(request.GET["hub.challenge"], status=200, content_type="text/plain")
+        logging.error("Webhook Verification failed")
+        return "Invalid verification token"
+        # if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
+        #     return HttpResponse(request.GET['hub.challenge'])
+        # else:
+        #     return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         
     def post(self, request):
-        body = json.loads(request.body)
-        body = JsonMapper(body)
-        if body.entry[0].changes[0].value.__dict__.get('messages'):
-            messages = body.entry[0].changes[0].value.messages
-            name = body.entry[0].changes[0].value.contacts[0].profile.name
-            number = '+' + body.entry[0].changes[0].value.contacts[0].wa_id
-            message = messages[0].text.body
+        data = json.loads(request.body)
+        logging.info("Received webhook data: %s", data)
+        changed_field = messenger.changed_field(data)
+        if changed_field == "messages":
+            new_message = messenger.get_mobile(data)
+            if new_message:
+                mobile = messenger.get_mobile(data)
+                number = '+' + mobile
+                name = messenger.get_name(data)
+                message_type = messenger.get_message_type(data)
+                logging.info(
+                    f"New Message; sender:{mobile} name:{name} type:{message_type}"
+                )
 
-            if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
-                lead_url = os.environ['BACKEND_API_BASE_URL'] + '/leads/'
-                contact_url = os.environ['BACKEND_API_BASE_URL'] + '/contacts/'
+                if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
+                    lead_url = os.environ['BACKEND_API_BASE_URL'] + '/leads/'
+                    contact_url = os.environ['BACKEND_API_BASE_URL'] + '/contacts/'
 
-                headers= {'Authorization':'Bearer ' + os.environ['BACKEND_API_TOKEN'], 'org':os.environ['API_ORG'], 'Content-Type':'application/json'}
-                email = name.split()[0] + '@email.temp'
-                lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
-                contact_payload = {'first_name':name, 'last_name':name, 'mobile_number':number, 'primary_email':email}
+                    headers= {'Authorization':'Bearer ' + os.environ['BACKEND_API_TOKEN'], 'org':os.environ['API_ORG'], 'Content-Type':'application/json'}
+                    email = name.split()[0] + '@email.temp'
+                    lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
+                    contact_payload = {'first_name':name, 'last_name':name, 'mobile_number':number, 'primary_email':email}
 
-                req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload))
-                print("Lead status: ", req.text)
-                req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload))
-                print("Contact status: ", req.text)
+                    req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload))
+                    print("Lead status: ", req.text)
+                    req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload))
+                    print("Contact status: ", req.text)
 
-                lead = Lead.objects.get(phone=number)
-                contact = Contact.objects.get(mobile_number=number)
+                    lead = Lead.objects.get(phone=number)
+                    contact = Contact.objects.get(mobile_number=number)
 
-                WhatsappContacts.objects.create(lead=lead, contact=contact, name=name, number=number)
-                print(whatsapp_number.contact.id)
-                print(whatsapp_number.wa_id)
-                message_data = {
-                    'number': whatsapp_number.wa_id,
-                    'message': message,
-                    'isOpponent': True
-                }
-                serializer = MessageSerializer(data=message_data)
-                if serializer.is_valid():
-                    serializer.save()
-                    return HttpResponse(status=204)
+                    WhatsappContacts.objects.create(lead=lead, contact=contact, name=name, number=number)
+                if message_type == "text":
+                    message = messenger.get_message(data)
+                    name = messenger.get_name(data)
+                    logging.info("Message: %s", message)
+
+                    whatsapp_number = WhatsappContacts.objects.get(number=number)
+                    print('Chat room name: ', whatsapp_number.wa_id)
+                    messenger.send_message(f"Hi {name}, nice to connect with you", mobile)
+
+                    message_data = {
+                        'number': whatsapp_number.wa_id,
+                        'message': message,
+                        'isOpponent': True
+                    }
+                    serializer = MessageSerializer(data=message_data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return HttpResponse(status=status.HTTP_200_OK)
+                    else:
+                        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    # messenger.send_message(f"Hi {name}, nice to connect with you", mobile)
+
+                elif message_type == "interactive":
+                    message_response = messenger.get_interactive_response(data)
+                    interactive_type = message_response.get("type")
+                    message_id = message_response[interactive_type]["id"]
+                    message_text = message_response[interactive_type]["title"]
+                    logging.info(f"Interactive Message; {message_id}: {message_text}")
+
+                elif message_type == "location":
+                    message_location = messenger.get_location(data)
+                    message_latitude = message_location["latitude"]
+                    message_longitude = message_location["longitude"]
+                    logging.info("Location: %s, %s", message_latitude, message_longitude)
+
+                elif message_type == "image":
+                    image = messenger.get_image(data)
+                    image_id, mime_type = image["id"], image["mime_type"]
+                    image_url = messenger.query_media_url(image_id)
+                    image_filename = messenger.download_media(image_url, mime_type)
+                    print(f"{mobile} sent image {image_filename}")
+                    logging.info(f"{mobile} sent image {image_filename}")
+
+                elif message_type == "video":
+                    video = messenger.get_video(data)
+                    video_id, mime_type = video["id"], video["mime_type"]
+                    video_url = messenger.query_media_url(video_id)
+                    video_filename = messenger.download_media(video_url, mime_type)
+                    print(f"{mobile} sent video {video_filename}")
+                    logging.info(f"{mobile} sent video {video_filename}")
+
+                elif message_type == "audio":
+                    audio = messenger.get_audio(data)
+                    audio_id, mime_type = audio["id"], audio["mime_type"]
+                    audio_url = messenger.query_media_url(audio_id)
+                    audio_filename = messenger.download_media(audio_url, mime_type)
+                    print(f"{mobile} sent audio {audio_filename}")
+                    logging.info(f"{mobile} sent audio {audio_filename}")
+
+                elif message_type == "document":
+                    file = messenger.get_document(data)
+                    file_id, mime_type = file["id"], file["mime_type"]
+                    file_url = messenger.query_media_url(file_id)
+                    file_filename = messenger.download_media(file_url, mime_type)
+                    print(f"{mobile} sent file {file_filename}")
+                    logging.info(f"{mobile} sent file {file_filename}")
                 else:
-                    return HttpResponse(status=204)
+                    print(f"{mobile} sent {message_type} ")
+                    print(data)
             else:
-                whatsapp_number = WhatsappContacts.objects.get(number=number)
-                print(whatsapp_number.contact.id)
-                print(whatsapp_number.wa_id)
-    
-
-                message_data = {
-                    'number': whatsapp_number.wa_id,
-                    'message': message,
-                    'isOpponent': True
-                }
-                serializer = MessageSerializer(data=message_data)
-                if serializer.is_valid():
-                    serializer.save()
-                    return HttpResponse(status=status.HTTP_200_OK)
+                delivery = messenger.get_delivery(data)
+                if delivery:
+                    print(f"Message : {delivery}")
                 else:
-                    return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    print("No new message")
         return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
-
+    
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -123,6 +184,65 @@ class IndexView(View):
 class RoomView(View):
     def get(self, request, room_name):
         return render(request, "room.html", {"room_name": room_name})
+        # body = json.loads(request.body)
+        # body = JsonMapper(body)
+        # if body.entry[0].changes[0].value.__dict__.get('messages'):
+        #     print("Message: ", request.body)
+        #     messages = body.entry[0].changes[0].value.messages
+        #     name = body.entry[0].changes[0].value.contacts[0].profile.name
+        #     number = '+' + body.entry[0].changes[0].value.contacts[0].wa_id
+        #     message = messages[0].text.body
+
+        #     if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
+        #         lead_url = os.environ['BACKEND_API_BASE_URL'] + '/leads/'
+        #         contact_url = os.environ['BACKEND_API_BASE_URL'] + '/contacts/'
+
+        #         headers= {'Authorization':'Bearer ' + os.environ['BACKEND_API_TOKEN'], 'org':os.environ['API_ORG'], 'Content-Type':'application/json'}
+        #         email = name.split()[0] + '@email.temp'
+        #         lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
+        #         contact_payload = {'first_name':name, 'last_name':name, 'mobile_number':number, 'primary_email':email}
+
+        #         req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload))
+        #         print("Lead status: ", req.text)
+        #         req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload))
+        #         print("Contact status: ", req.text)
+
+        #         lead = Lead.objects.get(phone=number)
+        #         contact = Contact.objects.get(mobile_number=number)
+
+        #         WhatsappContacts.objects.create(lead=lead, contact=contact, name=name, number=number)
+        #         print(whatsapp_number.contact.id)
+        #         print(whatsapp_number.wa_id)
+        #         message_data = {
+        #             'number': whatsapp_number.wa_id,
+        #             'message': message,
+        #             'isOpponent': True
+        #         }
+        #         serializer = MessageSerializer(data=message_data)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             return HttpResponse(status=204)
+        #         else:
+        #             return HttpResponse(status=204)
+        #     else:
+        #         whatsapp_number = WhatsappContacts.objects.get(number=number)
+        #         print(whatsapp_number.contact.id)
+        #         print(whatsapp_number.wa_id)
+    
+
+        #         message_data = {
+        #             'number': whatsapp_number.wa_id,
+        #             'message': message,
+        #             'isOpponent': True
+        #         }
+        #         serializer = MessageSerializer(data=message_data)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             return HttpResponse(status=status.HTTP_200_OK)
+        #         else:
+        #             return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # print(request.body)
+        # return HttpResponse(status=status.HTTP_501_NOT_IMPLEMENTED)
     
 # class SendMessageView(APIView):
     
