@@ -13,7 +13,10 @@ from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
 from .models import WhatsappContacts, Messages
-from .serializer import WhatsappContactsSerializer
+from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer
+from chat import swagger_params
+
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from heyoo import WhatsApp
 import requests, json, os, logging
@@ -35,11 +38,25 @@ class JsonMapper:
 
 class WhatsappContactsView(APIView):
     permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
         contacts = WhatsappContacts.objects.all()
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
     
+class OrgWhatsappMappingView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params, request=OrgWhatsappMappingSerializer)
+    def post(self, request):
+        data = request.data
+        serializer = OrgWhatsappMappingSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(org=request.profile.org)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ReceiveMessageView(View):
 
     def dispatch(self, request, *args, **kwargs):
@@ -172,6 +189,7 @@ class ReceiveMessageView(View):
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request, wa_id):
         messages = Messages.objects.all().filter(number=wa_id)
         serializer = MessageSerializer(messages, many=True)
