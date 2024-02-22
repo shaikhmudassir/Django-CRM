@@ -1,6 +1,7 @@
 from django.db import models
 from leads.models import Lead
 from contacts.models import Contact
+from common.models import Org
 from django.utils.crypto import get_random_string
 
 def format_time(time_obj):
@@ -42,3 +43,12 @@ class Messages(models.Model):
     #     print(self.timestamp)
     #     self.timestamp = format_time(self.timestamp)
     #     super().save(*args, **kwargs)
+
+class OrgWhatsappMapping(models.Model):
+    org = models.ForeignKey(Org, on_delete=models.CASCADE)
+    whatsapp_number_id = models.CharField(max_length=100, unique=True)
+    permanent_token = models.CharField(max_length=500, unique=True)
+    webhook_verification_token = models.CharField(default=get_random_string(length=32), unique=True, max_length=50)
+    url = models.CharField(default=get_random_string(length=32), max_length=50, unique=True)
+    def __str__(self):
+        return self.whatsapp_number_id

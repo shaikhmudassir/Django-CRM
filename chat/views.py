@@ -12,8 +12,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
-from .models import WhatsappContacts, Messages
-from .serializer import WhatsappContactsSerializer
+from .models import WhatsappContacts, Messages, OrgWhatsappMapping
+from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer
+from chat import swagger_params
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from heyoo import WhatsApp
 import requests, json, os, logging
@@ -35,11 +37,27 @@ class JsonMapper:
 
 class WhatsappContactsView(APIView):
     permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
         contacts = WhatsappContacts.objects.all()
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
     
+class OrgWhatsappMappingView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params, request=OrgWhatsappMappingSerializer)
+    def post(self, request):
+        data = request.data
+        data['org'] = request.profile.org.id
+        serializer = OrgWhatsappMappingSerializer(data=data, hostname=request.META['SERVER_NAME'])
+        
+        if serializer.is_valid():
+            serializer.save(org=request.profile.org)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ReceiveMessageView(View):
 
     def dispatch(self, request, *args, **kwargs):
@@ -48,18 +66,23 @@ class ReceiveMessageView(View):
         else:
             return self.get(request, *args, **kwargs)
 
-    def get(self, request):
-        if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
+    def get(self, request, url):
+        if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == OrgWhatsappMapping.objects.get(url=url).webhook_verification_token:
             logging.info("Verified webhook")
             return HttpResponse(request.GET["hub.challenge"], status=200, content_type="text/plain")
         logging.error("Webhook Verification failed")
         return "Invalid verification token"
         # if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
+        #     logging.info("Verified webhook")
+        #     return HttpResponse(request.GET["hub.challenge"], status=200, content_type="text/plain")
+        # logging.error("Webhook Verification failed")
+        # return "Invalid verification token"
+        # if request.GET['hub.mode'] == 'subscribe' and request.GET['hub.verify_token'] == os.environ['WHATSAPP_API_WEBHOOK_TOKEN']:
         #     return HttpResponse(request.GET['hub.challenge'])
         # else:
         #     return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         
-    def post(self, request):
+    def post(self, request, url):
         data = json.loads(request.body)
         logging.info("Received webhook data: %s", data)
         changed_field = messenger.changed_field(data)
@@ -172,6 +195,7 @@ class ReceiveMessageView(View):
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request, wa_id):
         messages = Messages.objects.all().filter(number=wa_id)
         serializer = MessageSerializer(messages, many=True)
