@@ -12,9 +12,20 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrgWhatsappMappingSerializer(serializers.ModelSerializer):
+    
+    def __init__(self, *args, **kwargs):
+                hostname = kwargs.pop('hostname', None)
+                super().__init__(*args, **kwargs)
+                self.hostname = hostname
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['webhook_verification_token'] = instance.webhook_verification_token
+        data['url'] = f"https://{self.hostname}/api/chat/webhook/{data['url']}"
+        return data
+    
     class Meta:
         model = OrgWhatsappMapping
-        fields = ('whatsapp_number_id', 'permanent_token')
-
+        fields = '__all__'
 
         

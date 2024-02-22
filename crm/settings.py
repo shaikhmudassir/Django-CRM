@@ -34,7 +34,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["127.0.0.1", "44.203.118.198", "0.0.0.0"]
 
 INSTALLED_APPS = [
     "daphne",

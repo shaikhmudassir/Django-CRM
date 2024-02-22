@@ -3,7 +3,7 @@ from .views import WhatsappContactsView, ReceiveMessageView, MessageListView, Or
 app_name = "chat"
 
 urlpatterns = [
-    path('', ReceiveMessageView.as_view(), name='receive'),
+    path('webhook/<str:url>', ReceiveMessageView.as_view(), name='receive'),
     path('contacts/', WhatsappContactsView.as_view(), name='contacts'),
     path('messages/<str:wa_id>/', MessageListView.as_view(), name='messages'),
     path('mapping/', OrgWhatsappMappingView.as_view(), name='mapping'),
