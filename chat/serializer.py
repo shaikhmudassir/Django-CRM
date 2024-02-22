@@ -22,6 +22,7 @@ class OrgWhatsappMappingSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['webhook_verification_token'] = instance.webhook_verification_token
         data['url'] = f"https://{self.hostname}/api/chat/webhook/{data['url']}"
+        del data['api_refresh_token']
         return data
     
     class Meta:
