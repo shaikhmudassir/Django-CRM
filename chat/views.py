@@ -13,7 +13,7 @@ from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
 from .models import WhatsappContacts, Messages, OrgWhatsappMapping
-from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer
+from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer
 from chat import swagger_params
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
@@ -39,6 +39,38 @@ class WhatsappContactsView(APIView):
         contacts = WhatsappContacts.objects.all()
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
+
+    @extend_schema(parameters=swagger_params.organization_params, request=AddNewWAContactSerializer)
+    def post(self, request):
+        title = request.data['title']
+        first_name = request.data['first_name']
+        last_name = request.data['last_name']
+        number = request.data['number']
+        email = request.data['email']
+        api_access_token = request.headers['Authorization'].split(' ')[1]
+        
+        lead_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/leads/"
+        contact_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/contacts/"
+        headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(request.profile.org.id), 'Content-Type':'application/json'}
+        
+        lead_payload = {'title':title, 'first_name':first_name, 'last_name':last_name, 'phone':number, 'email':email, 'probability':0}
+        contact_payload = {'first_name':first_name, 'last_name':last_name, 'mobile_number':number, 'primary_email':email}
+
+        req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload)).json()
+        if req['error']:
+            return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print("Lead status: ", req)
+        
+        req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload)).json()
+        if req['error']:
+            return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print("Contact status: ", req)
+
+        lead = Lead.objects.get(phone=number)
+        contact = Contact.objects.get(mobile_number=number)
+
+        WhatsappContacts.objects.create(lead=lead, contact=contact, name=first_name, number=number)
+        return Response({'message':'Contact added successfully'}, status=status.HTTP_201_CREATED)
     
 class OrgWhatsappMappingView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -104,10 +136,15 @@ class ReceiveMessageView(View):
                     lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
                     contact_payload = {'first_name':name, 'last_name':name, 'mobile_number':number, 'primary_email':email}
 
-                    req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload))
-                    print("Lead status: ", req.text)
-                    req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload))
-                    print("Contact status: ", req.text)
+                    req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload)).json()
+                    if req['error']:
+                        return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    print("Lead status: ", req)
+                    
+                    req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload)).json()
+                    if req['error']:
+                        return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    print("Contact status: ", req)
 
                     lead = Lead.objects.get(phone=number)
                     contact = Contact.objects.get(mobile_number=number)
