@@ -36,6 +36,7 @@ class WhatsappContactsView(APIView):
 
     @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
+        print(request.META['HTTP_HOST'])
         contacts = WhatsappContacts.objects.all()
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
@@ -49,8 +50,8 @@ class WhatsappContactsView(APIView):
         email = request.data['email']
         api_access_token = request.headers['Authorization'].split(' ')[1]
         
-        lead_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/leads/"
-        contact_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/contacts/"
+        lead_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/leads/"
+        contact_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/contacts/"
         headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(request.profile.org.id), 'Content-Type':'application/json'}
         
         lead_payload = {'title':title, 'first_name':first_name, 'last_name':last_name, 'phone':number, 'email':email, 'probability':0}
@@ -81,7 +82,7 @@ class OrgWhatsappMappingView(APIView):
         data['org'] = request.profile.org.id
         data['api_refresh_token'] = request.session['refresh_token']
         del request.session['refresh_token']
-        serializer = OrgWhatsappMappingSerializer(data=data, hostname=request.META['SERVER_NAME'])
+        serializer = OrgWhatsappMappingSerializer(data=data, hostname=request.META['HTTP_HOST'])
         
         if serializer.is_valid():
             serializer.save(org=request.profile.org)
@@ -125,12 +126,12 @@ class ReceiveMessageView(View):
 
                 if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
                     mapping_obj = OrgWhatsappMapping.objects.get(url=url)
-                    refresh_url =f"http://{self.request.META['SERVER_NAME']}:8000/api/auth/refresh-token/"
+                    refresh_url =f"http://{self.request.META['HTTP_HOST']}:8000/api/auth/refresh-token/"
                     req = requests.post(refresh_url, data={'refresh':mapping_obj.api_refresh_token})
                     api_access_token = req.json()['access']
 
-                    lead_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/leads/"
-                    contact_url = f"http://{self.request.META['SERVER_NAME']}:8000/api/contacts/"
+                    lead_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/leads/"
+                    contact_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/contacts/"
                     headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(mapping_obj.org.id), 'Content-Type':'application/json'}
                     email = name.split()[0] + '@email.temp'
                     lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
