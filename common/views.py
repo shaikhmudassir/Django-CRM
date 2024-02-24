@@ -383,7 +383,7 @@ class OrgProfileCreateView(APIView):
         request=OrgProfileCreateSerializer
     )
     def post(self, request, format=None):
-        data = request.data.copy()
+        data = request.data
         print(data)
         data['api_key'] = secrets.token_hex(16)
         serializer = self.serializer_class(data=data)
