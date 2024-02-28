@@ -13,45 +13,36 @@ from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
 from .models import WhatsappContacts, Messages, OrgWhatsappMapping
-from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer
+from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer, AddBulkContactSerializer
+from rest_framework.parsers import MultiPartParser
 from chat import swagger_params
 from drf_spectacular.utils import extend_schema
+from django.utils.crypto import get_random_string
 from rest_framework.permissions import IsAuthenticated
 from heyoo import WhatsApp
-import requests, json, os, logging
+import requests, json, logging
 
-
-class JsonMapper:
-    def __init__(self, data):
-        for key, value in data.items():
-            if isinstance(value, dict):
-                setattr(self, key, JsonMapper(value))
-            elif isinstance(value, list):
-                setattr(self, key, [JsonMapper(item) if isinstance(item, dict) else item for item in value])
-            else:
-                setattr(self, key, value)
 
 class WhatsappContactsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
-        print(request.META['HTTP_HOST'])
         contacts = WhatsappContacts.objects.all()
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
 
     @extend_schema(parameters=swagger_params.organization_params, request=AddNewWAContactSerializer)
     def post(self, request):
-        title = request.data['title']
+        title = request.data['lead_title']
         first_name = request.data['first_name']
         last_name = request.data['last_name']
         number = request.data['number']
         email = request.data['email']
         api_access_token = request.headers['Authorization'].split(' ')[1]
         
-        lead_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/leads/"
-        contact_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/contacts/"
+        lead_url = f"http://{self.request.META['HTTP_HOST']}/api/leads/"
+        contact_url = f"http://{self.request.META['HTTP_HOST']}/api/contacts/"
         headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(request.profile.org.id), 'Content-Type':'application/json'}
         
         lead_payload = {'title':title, 'first_name':first_name, 'last_name':last_name, 'phone':number, 'email':email, 'probability':0}
@@ -126,12 +117,12 @@ class ReceiveMessageView(View):
 
                 if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
                     mapping_obj = OrgWhatsappMapping.objects.get(url=url)
-                    refresh_url =f"http://{self.request.META['HTTP_HOST']}:8000/api/auth/refresh-token/"
+                    refresh_url =f"http://{self.request.META['HTTP_HOST']}/api/auth/refresh-token/"
                     req = requests.post(refresh_url, data={'refresh':mapping_obj.api_refresh_token})
                     api_access_token = req.json()['access']
 
-                    lead_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/leads/"
-                    contact_url = f"http://{self.request.META['HTTP_HOST']}:8000/api/contacts/"
+                    lead_url = f"http://{self.request.META['HTTP_HOST']}/api/leads/"
+                    contact_url = f"http://{self.request.META['HTTP_HOST']}/api/contacts/"
                     headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(mapping_obj.org.id), 'Content-Type':'application/json'}
                     email = name.split()[0] + '@email.temp'
                     lead_payload = {'title':name, 'first_name':name, 'last_name':name, 'phone':number, 'email':email, 'probability':0}
