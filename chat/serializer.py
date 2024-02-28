@@ -30,8 +30,11 @@ class OrgWhatsappMappingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AddNewWAContactSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=64)
+    lead_title = serializers.CharField(max_length=64)
     first_name = serializers.CharField(max_length=255)
     last_name = serializers.CharField(max_length=255)
     number = serializers.CharField(max_length=15)
     email = serializers.EmailField()
+
+class AddBulkContactSerializer(serializers.Serializer):
+    csv_file = serializers.FileField()

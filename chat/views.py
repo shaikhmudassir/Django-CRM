@@ -64,6 +64,50 @@ class WhatsappContactsView(APIView):
         WhatsappContacts.objects.create(lead=lead, contact=contact, name=first_name, number=number)
         return Response({'message':'Contact added successfully'}, status=status.HTTP_201_CREATED)
     
+class WhatsappBulkContactsView(APIView):
+    parser_classes = (MultiPartParser,)
+    
+    @extend_schema(parameters=swagger_params.organization_params, request=AddBulkContactSerializer)
+    def post(self, request):
+        csv_file = request.FILES['csv_file']
+        if not csv_file.name.endswith('.csv'):
+            return Response({'error':'File is not a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+        data_set = csv_file.read().decode('UTF-8')
+        lines = data_set.split("\n")
+        for line in lines:	
+            fields = line.split(",")
+            title = fields[0]
+            first_name = fields[1]
+            last_name = fields[2]
+            number = fields[3]
+            email = fields[4]
+            wa_id = get_random_string(length=32)
+            api_access_token = request.headers['Authorization'].split(' ')[1]
+            
+            lead_url = f"http://{self.request.META['HTTP_HOST']}/api/leads/"
+            contact_url = f"http://{self.request.META['HTTP_HOST']}/api/contacts/"
+            headers= {'Authorization':'Bearer ' + api_access_token, 'org':str(request.profile.org.id), 'Content-Type':'application/json'}
+            
+            lead_payload = {'title':title, 'first_name':first_name, 'last_name':last_name, 'phone':number, 'email':email, 'probability':0}
+            contact_payload = {'first_name':first_name, 'last_name':last_name, 'mobile_number':number, 'primary_email':email}
+
+            req = requests.post(lead_url, headers=headers,  data=json.dumps(lead_payload)).json()
+            if req['error']:
+                return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print("Lead status: ", req)
+            
+            req = requests.post(contact_url, headers=headers,  data=json.dumps(contact_payload)).json()
+            if req['error']:
+                return Response(req, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print("Contact status: ", req)
+            
+            lead = Lead.objects.get(phone=number)
+            contact = Contact.objects.get(mobile_number=number)
+            print("Yaha tak aa gai bhai sahab")
+            WhatsappContacts.objects.create(lead=lead, contact=contact, name=first_name, number=number, wa_id=wa_id)
+            print("Areeee! yaha tak bhi aa gai?")
+        return Response({'message':'Contacts added successfully'}, status=status.HTTP_201_CREATED)
+    
 class OrgWhatsappMappingView(APIView):
     permission_classes = (IsAuthenticated,)
 

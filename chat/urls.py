@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import WhatsappContactsView, ReceiveMessageView, MessageListView, OrgWhatsappMappingView, IndexView, RoomView   #, SendMessageView, DisplayChatView, ContactListView
+from .views import WhatsappContactsView, ReceiveMessageView, MessageListView, OrgWhatsappMappingView, IndexView, RoomView, WhatsappBulkContactsView  #, SendMessageView, DisplayChatView, ContactListView
 app_name = "chat"
 
 urlpatterns = [
     path('webhook/<str:url>', ReceiveMessageView.as_view(), name='receive'),
     path('contacts/', WhatsappContactsView.as_view(), name='contacts'),
+    path('contacts/bulk/', WhatsappBulkContactsView.as_view(), name='contacts'),
     path('messages/<str:wa_id>/', MessageListView.as_view(), name='messages'),
     path('mapping/', OrgWhatsappMappingView.as_view(), name='mapping'),
     path('channel/', IndexView.as_view(), name='channel'),
