@@ -906,6 +906,7 @@ class GoogleLoginView(APIView):
             user.save()
         token = RefreshToken.for_user(user)  # generate token without username & password
         request.session['refresh_token'] = str(token)
+        request.session['id_admin_user'] = str(user.id)
         response = {}
         response['username'] = user.email
         response['access_token'] = str(token.access_token)

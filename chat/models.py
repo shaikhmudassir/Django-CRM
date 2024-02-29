@@ -51,5 +51,6 @@ class OrgWhatsappMapping(models.Model):
     webhook_verification_token = models.CharField(default=get_random_string(length=32), unique=True, max_length=50)
     url = models.CharField(default=get_random_string(length=32), max_length=50, unique=True)
     api_refresh_token = models.CharField(max_length=500, unique=True)
+    id_admin_user = models.CharField(max_length=100, unique=True)
     def __str__(self):
         return self.whatsapp_number_id
