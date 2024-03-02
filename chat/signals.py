@@ -25,8 +25,6 @@ def create_profile(sender, instance, created, **kwargs):
             async_to_sync(send_whatsapp_message)(instance)
 
 async def send_whatsapp_message(instance):
-    print("But not here")
-    print(instance.message, instance.number.number)
     if instance.message == '/flight':
         template_data = get_templated_message_input(instance.number.number, {'origin':'Mumbai', 'destination':'Delhi', 'time':'10:00 AM'})
         await send_message(template_data)
