@@ -38,3 +38,7 @@ class AddNewWAContactSerializer(serializers.Serializer):
 
 class AddBulkContactSerializer(serializers.Serializer):
     csv_file = serializers.FileField()
+
+class SendMediaSerializer(serializers.Serializer):
+    media_file = serializers.FileField()
+    caption = serializers.CharField(max_length=1020) 

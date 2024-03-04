@@ -1,10 +1,6 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from .message_helper import get_templated_message_input, get_text_message_input, send_message
-from asgiref.sync import sync_to_async, async_to_sync
 from .models import Messages
 from leads.models import Lead
 from contacts.models import Contact
@@ -14,7 +10,7 @@ from chat.serializer import MessageSerializer
 from rest_framework.response import Response
 from .models import WhatsappContacts, Messages, OrgWhatsappMapping
 from common.models import User, Attachments
-from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer, AddBulkContactSerializer
+from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer, AddBulkContactSerializer, SendMediaSerializer
 from rest_framework.parsers import MultiPartParser
 from chat import swagger_params
 from drf_spectacular.utils import extend_schema
@@ -130,8 +126,8 @@ class OrgWhatsappMappingView(APIView):
     @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
         org = request.profile.org.id
-        mappings = OrgWhatsappMapping.objects.filter(org=org)
-        serializer = OrgWhatsappMappingSerializer(mappings, many=True, hostname=request.META['HTTP_HOST'])
+        mappings = OrgWhatsappMapping.objects.get(org=org)
+        serializer = OrgWhatsappMappingSerializer(mappings, hostname=request.META['HTTP_HOST'])
         return Response(serializer.data)
     
 class ReceiveMessageView(View):
@@ -286,6 +282,43 @@ class ReceiveMessageView(View):
         attachment.save()
         return attachment.file_name
     
+class SendMediaView(APIView):
+    permission_classes = (IsAuthenticated,)
+    parser_classes = (MultiPartParser,)
+        
+    @extend_schema(parameters=swagger_params.organization_params, request=SendMediaSerializer)
+    def post(self, request, media_type, wa_id):
+        mapping_obj = OrgWhatsappMapping.objects.get(org=request.profile.org.id)
+        messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
+
+        whatsapp_number = WhatsappContacts.objects.get(wa_id=wa_id)
+        caption = request.POST['caption']
+        media_file = request.FILES['media_file']
+        extension = media_file.name.split('.')[1]
+        
+        time = datetime.datetime.now()
+
+        attachment = Attachments()
+        attachment.created_by = User.objects.get(id=request.profile.user.id)
+        attachment.file_name = f"WA_IMG_{time.strftime('%Y%m%H%M%S')}.{extension}"
+        attachment.lead = whatsapp_number.lead
+        attachment.attachment = media_file
+        attachment.save()
+
+        if media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption)
+        elif media_type == 'video' and extension in ['mp4', 'mkv']:
+            response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption)
+        elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
+            response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
+        elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
+            response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption)
+        # elif media_type == 'location':
+        #     messenger.send_location(whatsapp_number.number)
+        else:
+            return Response({'error':'Invalid media type'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message':'Media sent successfully', 'media_url':request.META['HTTP_HOST'] + attachment.attachment.url}, status=status.HTTP_201_CREATED)
+
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)
 
