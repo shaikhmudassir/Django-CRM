@@ -172,21 +172,19 @@ class LeadListView(APIView, LimitOffsetPagination):
                     else:
                         tag = Tags.objects.create(name=t)
                     lead_obj.tags.add(tag)
-            print("contacts",data.get("contacts",None))
+
             if data.get("contacts",None):
                 obj_contact = Contact.objects.filter(
                     id__in=data.get("contacts"), org=request.profile.org
                 )
                 lead_obj.contacts.add(*obj_contact)
 
-            print("teams",data.get("teams",None))
-            # recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
-            # send_email_to_assigned_user.delay(
-            #     recipients,
-            #     lead_obj.id,
-            # )
+            recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
+            send_email_to_assigned_user.delay(
+                recipients,
+                lead_obj.id,
+            )
 
-            print("assigned_to",data.get("assigned_to",None))
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
                 attachment.created_by = request.profile.user
@@ -195,13 +193,11 @@ class LeadListView(APIView, LimitOffsetPagination):
                 attachment.attachment = request.FILES.get("lead_attachment")
                 attachment.save()
 
-            print("status",data.get("status"))
             if data.get("teams",None):
                 teams_list = data.get("teams")
                 teams = Teams.objects.filter(id__in=teams_list, org=request.profile.org)
                 lead_obj.teams.add(*teams)
 
-            print("assigned_to",data.get("assigned_to",None))
             if data.get("assigned_to",None):
                 assinged_to_list = data.get("assigned_to")
                 profiles = Profile.objects.filter(
@@ -209,7 +205,6 @@ class LeadListView(APIView, LimitOffsetPagination):
                 )
                 lead_obj.assigned_to.add(*profiles)
 
-            print("status",data.get("status"))
             if data.get("status") == "converted":
                 account_object = Account.objects.create(
                     created_by=request.profile.user,
@@ -238,13 +233,13 @@ class LeadListView(APIView, LimitOffsetPagination):
                 for tag in lead_obj.tags.all():
                     account_object.tags.add(tag)
 
-                # if data.get("assigned_to",None):
-                #     assigned_to_list = data.getlist("assigned_to")
-                #     recipients = assigned_to_list
-                #     send_email_to_assigned_user.delay(
-                #         recipients,
-                #         lead_obj.id,
-                #     )
+                if data.get("assigned_to",None):
+                    assigned_to_list = data.getlist("assigned_to")
+                    recipients = assigned_to_list
+                    send_email_to_assigned_user.delay(
+                        recipients,
+                        lead_obj.id,
+                    )
                 return Response(
                     {
                         "error": False,
