@@ -174,7 +174,7 @@ class LeadListView(APIView, LimitOffsetPagination):
                         tag = tag[0]
                     else:
                         tag = Tags.objects.create(name=t)
-                    lead_obj.tags.add(tag)request.profile.user
+                    lead_obj.tags.add(tag)
 
             print("2 Mudaassir\n============================================================")
             if data.get("contacts",None):
