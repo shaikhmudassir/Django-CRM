@@ -180,10 +180,10 @@ class LeadListView(APIView, LimitOffsetPagination):
                 lead_obj.contacts.add(*obj_contact)
 
             recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
-            send_email_to_assigned_user.delay(
-                recipients,
-                lead_obj.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     lead_obj.id,
+            # )
 
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
@@ -236,10 +236,10 @@ class LeadListView(APIView, LimitOffsetPagination):
                 if data.get("assigned_to",None):
                     assigned_to_list = data.getlist("assigned_to")
                     recipients = assigned_to_list
-                    send_email_to_assigned_user.delay(
-                        recipients,
-                        lead_obj.id,
-                    )
+                    # send_email_to_assigned_user.delay(
+                    #     recipients,
+                    #     lead_obj.id,
+                    # )
                 return Response(
                     {
                         "error": False,
@@ -453,10 +453,10 @@ class LeadDetailView(APIView):
                 lead_obj.assigned_to.all().values_list("id", flat=True)
             )
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(
-                recipients,
-                lead_obj.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     lead_obj.id,
+            # )
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
                 attachment.created_by = request.profile.user
@@ -517,10 +517,10 @@ class LeadDetailView(APIView):
                     # account_object.assigned_to.add(*params.getlist('assigned_to'))
                     assigned_to_list = params.get("assigned_to")
                     recipients = assigned_to_list
-                    send_email_to_assigned_user.delay(
-                        recipients,
-                        lead_obj.id,
-                    )
+                    # send_email_to_assigned_user.delay(
+                    #     recipients,
+                    #     lead_obj.id,
+                    # )
 
                 for comment in lead_obj.leads_comments.all():
                     comment.account = account_object
