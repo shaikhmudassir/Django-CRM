@@ -160,7 +160,7 @@ class LeadListView(APIView, LimitOffsetPagination):
         print('test')
         data = request.data
         serializer = LeadCreateSerializer(data=data, request_obj=request)
-        print("1", serializer)
+        print("1", request.profile.org)
         if serializer.is_valid():
             lead_obj = serializer.save(created_by=request.profile.user
             , org=request.profile.org)
