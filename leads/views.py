@@ -160,6 +160,7 @@ class LeadListView(APIView, LimitOffsetPagination):
         print('test')
         data = request.data
         serializer = LeadCreateSerializer(data=data, request_obj=request)
+        print(serializer)
         if serializer.is_valid():
             lead_obj = serializer.save(created_by=request.profile.user
             , org=request.profile.org)
@@ -173,6 +174,7 @@ class LeadListView(APIView, LimitOffsetPagination):
                         tag = Tags.objects.create(name=t)
                     lead_obj.tags.add(tag)
 
+            print(data.get("contacts",None))
             if data.get("contacts",None):
                 obj_contact = Contact.objects.filter(
                     id__in=data.get("contacts"), org=request.profile.org
@@ -185,6 +187,7 @@ class LeadListView(APIView, LimitOffsetPagination):
             #     lead_obj.id,
             # )
 
+            print(request.FILES.get("lead_attachment"))
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
                 attachment.created_by = request.profile.user
@@ -193,11 +196,13 @@ class LeadListView(APIView, LimitOffsetPagination):
                 attachment.attachment = request.FILES.get("lead_attachment")
                 attachment.save()
 
+            print(data.get("teams",None))
             if data.get("teams",None):
                 teams_list = data.get("teams")
                 teams = Teams.objects.filter(id__in=teams_list, org=request.profile.org)
                 lead_obj.teams.add(*teams)
 
+            print(data.get("assigned_to",None))
             if data.get("assigned_to",None):
                 assinged_to_list = data.get("assigned_to")
                 profiles = Profile.objects.filter(
@@ -205,6 +210,7 @@ class LeadListView(APIView, LimitOffsetPagination):
                 )
                 lead_obj.assigned_to.add(*profiles)
 
+            print(data.get("status",None))
             if data.get("status") == "converted":
                 account_object = Account.objects.create(
                     created_by=request.profile.user,
@@ -247,6 +253,8 @@ class LeadListView(APIView, LimitOffsetPagination):
                     },
                     status=status.HTTP_200_OK,
                 )
+            
+            print('Response test')
             return Response(
                 {"error": False, "message": "Lead Created Successfully"},
                 status=status.HTTP_200_OK,
