@@ -169,6 +169,9 @@ class ReceiveMessageView(View):
 
                 if not Lead.objects.filter(phone=number).exists() or not Contact.objects.filter(mobile_number=number).exists():
                     # self.mapping_obj = OrgWhatsappMapping.objects.get(url=url)
+                    print("Lead Not exists")
+                    print(self.request.META['HTTP_HOST'])
+                    print(self.request.META)
                     refresh_url =f"http://{self.request.META['HTTP_HOST']}/api/auth/refresh-token/"
                     req = requests.post(refresh_url, data={'refresh':self.mapping_obj.api_refresh_token})
                     api_access_token = req.json()['access']
