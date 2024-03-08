@@ -161,7 +161,6 @@ class ReceiveMessageView(View):
                 number = '+' + mobile
                 name = self.messenger.get_name(data)
                 message_type = self.messenger.get_message_type(data)
-                whatsapp_number = WhatsappContacts.objects.get(number=number)
 
                 logging.info(
                     f"New Message; sender:{mobile} name:{name} type:{message_type}"
@@ -197,6 +196,9 @@ class ReceiveMessageView(View):
                     contact = Contact.objects.get(mobile_number=number)
 
                     WhatsappContacts.objects.create(lead=lead, contact=contact, name=name, number=number)
+
+                whatsapp_number = WhatsappContacts.objects.get(number=number)
+
                 if message_type == "text":
                     message = self.messenger.get_message(data)
                     name = self.messenger.get_name(data)
