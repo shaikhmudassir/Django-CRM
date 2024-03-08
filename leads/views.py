@@ -159,6 +159,7 @@ class LeadListView(APIView, LimitOffsetPagination):
 
         print('test')
         data = request.data
+        print(data)
         serializer = LeadCreateSerializer(data=data, request_obj=request)
         print("1", request.profile.org)
         if serializer.is_valid():
@@ -173,7 +174,7 @@ class LeadListView(APIView, LimitOffsetPagination):
                         tag = tag[0]
                     else:
                         tag = Tags.objects.create(name=t)
-                    lead_obj.tags.add(tag)
+                    lead_obj.tags.add(tag)request.profile.user
 
             print("2 Mudaassir\n============================================================")
             if data.get("contacts",None):
