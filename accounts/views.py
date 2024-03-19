@@ -200,10 +200,10 @@ class AccountsListView(APIView, LimitOffsetPagination):
             recipients = list(
                 account_object.assigned_to.all().values_list("id", flat=True)
             )
-            send_email_to_assigned_user.delay(
-                recipients,
-                account_object.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     account_object.id,
+            # )
             return Response(
                 {"error": False, "message": "Account Created Successfully"},
                 status=status.HTTP_200_OK,
@@ -302,10 +302,10 @@ class AccountDetailView(APIView):
                 account_object.assigned_to.all().values_list("id", flat=True)
             )
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(
-                recipients,
-                account_object.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     account_object.id,
+            # )
             return Response(
                 {"error": False, "message": "Account Updated Successfully"},
                 status=status.HTTP_200_OK,

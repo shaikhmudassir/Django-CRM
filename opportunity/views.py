@@ -164,10 +164,10 @@ class OpportunityListView(APIView, LimitOffsetPagination):
                 opportunity_obj.assigned_to.all().values_list("id", flat=True)
             )
 
-            send_email_to_assigned_user.delay(
-                recipients,
-                opportunity_obj.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     opportunity_obj.id,
+            # )
             return Response(
                 {"error": False, "message": "Opportunity Created Successfully"},
                 status=status.HTTP_200_OK,
@@ -274,10 +274,10 @@ class OpportunityDetailView(APIView):
                 opportunity_object.assigned_to.all().values_list("id", flat=True)
             )
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(
-                recipients,
-                opportunity_object.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     opportunity_object.id,
+            # )
             return Response(
                 {"error": False, "message": "Opportunity Updated Successfully"},
                 status=status.HTTP_200_OK,
