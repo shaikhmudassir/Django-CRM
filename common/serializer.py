@@ -192,7 +192,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "id",
             "user_details",
             "role",
-            "address",
+            "user_address",
             "has_marketing_access",
             "has_sales_access",
             "phone",
