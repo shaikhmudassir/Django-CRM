@@ -230,6 +230,17 @@ class Profile(BaseModel):
             'is_active' : self.user.is_active,
             'profile_pic' : self.user.profile_pic
         }
+    
+    @property
+    def user_address(self):
+        return {
+            'address_line': self.address.address_line,
+            'street': self.address.street,
+            'city': self.address.city,
+            'state': self.address.state,
+            'postcode': self.address.postcode,
+            'country': self.address.country
+        }
 
 
 class Comment(BaseModel):
