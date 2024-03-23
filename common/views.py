@@ -64,6 +64,7 @@ from opportunity.models import Opportunity
 from opportunity.serializer import OpportunitySerializer
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
+from django.db.models import Sum
 
 
 class GetTeamsAndUsersView(APIView):
@@ -362,10 +363,13 @@ class ApiHomeView(APIView):
         context["contacts_count"] = contacts.count()
         context["leads_count"] = leads.count()
         context["opportunities_count"] = opportunities.count()
+        context["opportunities_amount"] = Lead.objects.aggregate(Sum('value'))['value__sum']
+        context["opportunities_amount_by_account"] = Opportunity.objects.values('account').annotate(total_amount=Sum('amount')).order_by('total_amount')  
         context["accounts"] = AccountSerializer(accounts, many=True).data
         context["contacts"] = ContactSerializer(contacts, many=True).data
         context["leads"] = LeadSerializer(leads, many=True).data
         context["opportunities"] = OpportunitySerializer(opportunities, many=True).data
+        # opportunity_value_by_lead .
         return Response(context, status=status.HTTP_200_OK)
 
 
