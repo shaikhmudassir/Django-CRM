@@ -167,6 +167,7 @@ class CreateProfileSerializer(serializers.ModelSerializer):
             "has_sales_access",
             "has_marketing_access",
             "is_organization_admin",
+            "user_address",
         )
 
     def __init__(self, *args, **kwargs):
@@ -174,6 +175,7 @@ class CreateProfileSerializer(serializers.ModelSerializer):
         self.fields["alternate_phone"].required = False
         self.fields["role"].required = True
         self.fields["phone"].required = True
+        self.fields["user_address"].required = False
 
 
 class UserSerializer(serializers.ModelSerializer):
