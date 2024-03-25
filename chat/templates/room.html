@@ -13,16 +13,40 @@
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
         const chatSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
             + '/ws/chat/'
             + roomName
             + '/'
         );
 
+        chatSocket.onopen = function() {
+            const message = JSON.stringify({
+            type: "authentication", // Clearly identify message type
+            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MDAwNzY4LCJpYXQiOjE3MDc5MTQzNjgsImp0aSI6IjMxZGY1OGE2ZjY0MTQ5ZjM4MjBhMWJhYzNjODAyZjE5IiwidXNlcl9pZCI6IjRhY2QyNWYxLWZmNzItNDQzMC05ZmZmLTI2OTAzNjljYTAwMSJ9.ky7Va-PPI1BMW4aM3frdlmPgQGRyamrZX1Fj8kMTngg",  // Enclose token in a secure object
+            org: "3650dad3-5670-49ee-ab5c-e490a2c791bf",
+            message: "Authentication"
+            });
+            chatSocket.send(message);
+        };
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            if (data.type === "authenticated") {
+            console.log("Authentication successful!");
+            // Proceed with authorized communication
+            } else if (data.type === "error") {
+            console.error("Authentication failed:", data.message);
+            // Handle authentication failure (e.g., close connection)
+            } else {
+            console.warn("Unexpected message type:", data.type);
+            }
             document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        chatSocket.onerror = function(error) {
+            console.error("WebSocket error:", error);
+            // Handle other errors (e.g., network issues)
         };
 
         chatSocket.onclose = function(e) {
