@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "events",
     "teams",
     "chat",
+    "notification",
 ]
 
 MIDDLEWARE = [

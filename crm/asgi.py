@@ -9,12 +9,18 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'crm.settings')
 django_asgi_app = get_asgi_application()
 
 import chat.routing
+import notification.routing
 
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
         "websocket": AllowedHostsOriginValidator(
-            AuthMiddlewareStack(URLRouter(chat.routing.websocket_urlpatterns))
+            AuthMiddlewareStack(
+                URLRouter(
+                    chat.routing.websocket_urlpatterns +
+                    notification.routing.websocket_urlpatterns
+                )
+            )
         ),
     }
 )
