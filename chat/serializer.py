@@ -47,3 +47,4 @@ class BulkMessageSendingSerializer(serializers.Serializer):
     list_of_numbers = serializers.ListField(child=serializers.CharField(max_length=30))
     message = serializers.CharField(max_length=1020)
     media_file = serializers.FileField()
+    components = serializers.JSONField(required=False)
