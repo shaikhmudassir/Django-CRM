@@ -3,7 +3,7 @@
     url = window.location.href
     access_token = url.split('#')[1].split('&')[0].split('=')[1]
     // Unsupported media type \"text/plain;charset=UTF-8\" in request.
-    const request = new Request('http://api.yorcrm.com/api/auth/google/')
+    const request = new Request('https://api.yorcrm.com/api/auth/google/')
     const response = fetch(request, {
       method: 'POST',
       headers: {
@@ -17,7 +17,7 @@
     .then(response => response.json())
     .then(data => {
       localStorage.setItem('access_token', data.access_token);
-      location.replace('http://api.yorcrm.com/api/chat/chat/ ')
+      location.replace('https://api.yorcrm.com/api/chat/chat/ ')
     })
     .catch(error => {
         console.log(error)
