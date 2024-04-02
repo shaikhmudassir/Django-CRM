@@ -373,7 +373,8 @@
         const sendPostRequest = async () => {
           
             const formData = new FormData(form);
-            const request = new Request('http://127.0.0.1:8000/api/chat/send/', {
+            const host = window.location.host;
+            const request = new Request('http://' + host + '/api/chat/send/', {
             method: 'POST',
             body: formData,
             });
