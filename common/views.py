@@ -922,6 +922,7 @@ class LoginSetup(View):
     def get(self, request):
         client_id = '514957663500-l9eugamcqa0o60lpgtmajvp6t41hgt63.apps.googleusercontent.com' # localhost
         redirect_uri = f'http://{self.request.META['HTTP_HOST']}/api/callback'
+        print(redirect_uri)
         # client_id = '514957663500-6hs1qqbfltmaenpt3a27g7rlq0tgc4q6.apps.googleusercontent.com'
         # redirect_uri = 'http://127.0.0.1:5500/callback.html'
         # redirect_uri = 'https://whatsappcrm.pythonanywhere.com/web/callback.html'
