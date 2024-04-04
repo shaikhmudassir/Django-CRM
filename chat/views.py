@@ -369,30 +369,29 @@ class BulkMessageSendingView(APIView):
                 components = []
                 if data.get('components'):
                     components.append(data['components'])
-                print(components)                
                 response = messenger.send_template("hello_world", whatsapp_number.number, components=components, lang="en_US")
-            # elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
-            #     response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            # elif media_type == 'video' and extension in ['mp4', 'mkv']:
-            #     response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            # elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
-            #     response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
-            # elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
-            #     response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            # else:
-            #     print("ye bhi run hua katte")
-            #     response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
+            elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+            elif media_type == 'video' and extension in ['mp4', 'mkv']:
+                response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+            elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
+                response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
+            elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
+                response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+            else:
+                print("ye bhi run hua katte")
+                response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
                 
-            # message_data = {
-            #     'number': wa_id,
-            #     'message': message,
-            #     'isOpponent': False
-            # }
-            # serializer = MessageSerializer(data=message_data)
-            # if serializer.is_valid():
-            #     serializer.save()
-            # else:
-            #     return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            message_data = {
+                'number': wa_id,
+                'message': message,
+                'isOpponent': False
+            }
+            serializer = MessageSerializer(data=message_data)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message':'Messages sent successfully'}, status=status.HTTP_201_CREATED) 
 
 class MessageListView(APIView):
