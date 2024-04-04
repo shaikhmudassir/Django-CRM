@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import WhatsappContactsView, ReceiveMessageView, MessageListView, OrgWhatsappMappingView, IndexView, RoomView, WhatsappBulkContactsView, SendMediaView  #, SendMessageView, DisplayChatView, ContactListView
+from .views import WhatsappContactsView, ReceiveMessageView, MessageListView, OrgWhatsappMappingView, IndexView, RoomView, WhatsappBulkContactsView, SendMediaView, BulkMessageSendingView  #, SendMessageView, DisplayChatView, ContactListView
 app_name = "chat"
 
 urlpatterns = [
@@ -10,7 +10,8 @@ urlpatterns = [
     path('mapping/', OrgWhatsappMappingView.as_view(), name='mapping'),
     path('send/<str:media_type>/<str:wa_id>', SendMediaView.as_view(), name='send-media'),
     path('channel/', IndexView.as_view(), name='channel'),
-    path('channel/<str:room_name>/', RoomView.as_view(), name='room')
+    path('channel/<str:room_name>/', RoomView.as_view(), name='room'),
+    path('send/bulk/', BulkMessageSendingView.as_view(), name='send-bulk'),
     # path('send/', SendMessageView.as_view(), name='send'),
     # path('chat/', DisplayChatView.as_view(), name='chat'),
     # path('contacts/', ContactListView.as_view(), name='contacts'),

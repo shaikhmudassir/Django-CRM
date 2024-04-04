@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Custom block for page title   -->
+    <title>Notify</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+    <!-- Icon CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+      .fa-solid {
+          font-size: 26px;
+      }
+  
+      .fa-solid[data-count]:after {
+          position: absolute;
+          right: 0%;
+          top: 1%;
+          content: attr(data-count);
+          font-size: 36%;
+          padding: .6em;
+          border-radius: 999px;
+          line-height: .75em;
+          color: white;
+          background: rgba(255, 0, 0, .85);
+          text-align: center;
+          min-width: 2em;
+          font-weight: bold;
+      }
+    </style>
+
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">Notify</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+            </li>
+          </ul>
+          <div class="d-flex dropstart">
+            <div class="collapse navbar-collapse dropstart" id="navbarNavDarkDropdown">
+              <ul class="navbar-nav">
+                <li class="nav-item dropdown dropdown-menu-start">
+                  <a class="nav-link " href="#"  data-bs-toggle="dropdown" aria-expanded="false">
+                    <i id="bellCount" class="fa-solid fa-bell" data-count="0" ></i>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-dark  text-wrap" id="notify" style="width: 300px !important;"></ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Custom block for content of body -->
+    <div class="container mt-5">
+      <h1 class="text-center">Welcome to Notify</h1>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+    <!-- Custom block for javascript -->
+    <script>
+      // setup chat scoket
+      let profile_id = 'b207f32d-089a-44a9-91b6-5009e5814e86';
+      profile_id = profile_id.replaceAll('-','_');
+      const notifyScoket = new WebSocket(
+          'ws://'
+          + window.location.host
+          + '/ws/notify/'
+          + profile_id
+          + '/'
+      );
+  
+      // on socket open
+      notifyScoket.onopen = function (e) {
+        const message = JSON.stringify({
+            type: "authentication", // Clearly identify message type
+            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExNDM2OTQwLCJpYXQiOjE3MTEzNTA1NDAsImp0aSI6IjI5NzUzNzg3OGEwYjQ4NDg5YmY5MjA3ZThhZDFjZmJmIiwidXNlcl9pZCI6IjQzMDYwZDNhLTc0YjgtNDU4OC1hNmEzLTFhMzM5NTIyY2MxZiJ9.PuH3TGG-aEPCJ-FqeZYbY0kh3raTxQtQenCbZZ-0eTA",  // Enclose token in a secure object
+            org: "3650dad3-5670-49ee-ab5c-e490a2c791bf",
+            message: "Authentication"
+            });
+            notifyScoket.send(message);
+      };
+  
+      // on socket close
+      notifyScoket.onclose = function (e) {
+          console.log('Socket closed unexpectedly');
+      };
+  
+      // on receiving message on group
+      notifyScoket.onmessage = function (e) {
+          const data = JSON.parse(e.data);
+          const message = data.message;
+          // Call the setMessage function to add the new li element
+          setMessage(message);
+  
+      };
+  
+      function setMessage(message) {
+          // Create a new li element
+          var newLi = document.createElement('li');
+  
+          // Create a new anchor element
+          var newAnchor = document.createElement('a');
+          newAnchor.className = 'dropdown-item text-wrap';
+          newAnchor.href = '#';
+          newAnchor.textContent = message;
+  
+          // Append the anchor element to the li element
+          newLi.appendChild(newAnchor);
+  
+          // Get the ul element with the id "notify"
+          var ulElement = document.getElementById('notify');
+  
+          // Append the new li element to the ul element
+          ulElement.appendChild(newLi);
+  
+          // getting object of count
+          count = document.getElementById('bellCount').getAttribute('data-count');
+          document.getElementById('bellCount').setAttribute('data-count', parseInt(count) + 1);
+      }
+  
+  
+    </script>
+</body>
+</html>

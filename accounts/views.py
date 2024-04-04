@@ -54,7 +54,7 @@ from opportunity.models import SOURCES, STAGES, Opportunity
 from opportunity.serializer import OpportunitySerializer
 from tasks.serializer import TaskSerializer
 from teams.models import Teams
-
+from notification.models import Notification
 
 class AccountsListView(APIView, LimitOffsetPagination):
     #authentication_classes = (CustomDualAuthentication,)
@@ -157,7 +157,7 @@ class AccountsListView(APIView, LimitOffsetPagination):
         serializer = AccountCreateSerializer(
             data=data, request_obj=request, account=True
         )
-        # Save Account
+        # Save Account 
         if serializer.is_valid():
             account_object = serializer.save(
                 org=request.profile.org
@@ -200,6 +200,11 @@ class AccountsListView(APIView, LimitOffsetPagination):
             recipients = list(
                 account_object.assigned_to.all().values_list("id", flat=True)
             )
+
+            instance = Notification.objects.create(message="New lead created and converted to account")
+            instance.recipients.set(recipients)
+            instance.save()
+            
             # send_email_to_assigned_user.delay(
             #     recipients,
             #     account_object.id,
@@ -302,6 +307,11 @@ class AccountDetailView(APIView):
                 account_object.assigned_to.all().values_list("id", flat=True)
             )
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
+
+            instance = Notification.objects.create(message="New lead created and converted to account")
+            instance.recipients.set(recipients)
+            instance.save()
+
             # send_email_to_assigned_user.delay(
             #     recipients,
             #     account_object.id,

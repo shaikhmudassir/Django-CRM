@@ -44,6 +44,7 @@ from leads.tasks import (
 )
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
+from notification.models import Notification
 
 
 class LeadListView(APIView, LimitOffsetPagination):
@@ -180,6 +181,9 @@ class LeadListView(APIView, LimitOffsetPagination):
                 lead_obj.contacts.add(*obj_contact)
 
             recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
+            instance = Notification.objects.create(message="New lead created and assigned to you")
+            instance.recipients.set(recipients)
+            instance.save()
             # send_email_to_assigned_user.delay(
             #     recipients,
             #     lead_obj.id,
@@ -236,6 +240,9 @@ class LeadListView(APIView, LimitOffsetPagination):
                 if data.get("assigned_to",None):
                     assigned_to_list = data.getlist("assigned_to")
                     recipients = assigned_to_list
+                    instance = Notification.objects.create(message="New lead created and converted to account")
+                    instance.recipients.set(recipients)
+                    instance.save()
                     # send_email_to_assigned_user.delay(
                     #     recipients,
                     #     lead_obj.id,
@@ -453,6 +460,8 @@ class LeadDetailView(APIView):
             assigned_to_list = list(
                 lead_obj.assigned_to.all().values_list("id", flat=True)
             )
+
+            # Not here
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
             # send_email_to_assigned_user.delay(
             #     recipients,
@@ -485,6 +494,9 @@ class LeadDetailView(APIView):
                 profiles = Profile.objects.filter(
                     id__in=assinged_to_list, org=request.profile.org
                 )
+                instance = Notification.objects.create(message="Lead assigned to you")
+                instance.recipients.set(assinged_to_list)
+                instance.save()
                 lead_obj.assigned_to.add(*profiles)
 
             if params.get("status") == "converted":
@@ -517,6 +529,9 @@ class LeadDetailView(APIView):
                 if params.get("assigned_to"):
                     # account_object.assigned_to.add(*params.getlist('assigned_to'))
                     assigned_to_list = params.get("assigned_to")
+                    instance = Notification.objects.create(message="Lead converted to account")
+                    instance.recipients.set(assinged_to_list)
+                    instance.save()
                     recipients = assigned_to_list
                     # send_email_to_assigned_user.delay(
                     #     recipients,

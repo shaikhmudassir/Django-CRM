@@ -26,6 +26,7 @@ from opportunity.models import Opportunity
 from opportunity.serializer import *
 from opportunity.tasks import send_email_to_assigned_user
 from teams.models import Teams
+from notification.models import Notification
 
 
 class OpportunityListView(APIView, LimitOffsetPagination):
@@ -164,6 +165,10 @@ class OpportunityListView(APIView, LimitOffsetPagination):
                 opportunity_obj.assigned_to.all().values_list("id", flat=True)
             )
 
+            instance = Notification.objects.create(message="New lead created and converted to account")
+            instance.recipients.set(recipients)
+            instance.save()
+
             # send_email_to_assigned_user.delay(
             #     recipients,
             #     opportunity_obj.id,
@@ -245,6 +250,7 @@ class OpportunityDetailView(APIView):
                 stage = params.get("stage")
                 if stage in ["CLOSED WON", "CLOSED LOST"]:
                     opportunity_object.closed_by = self.request.profile
+                    # convert to account
 
             opportunity_object.teams.clear()
             if params.get("teams"):
@@ -274,6 +280,11 @@ class OpportunityDetailView(APIView):
                 opportunity_object.assigned_to.all().values_list("id", flat=True)
             )
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
+
+            instance = Notification.objects.create(message="New lead created and converted to account")
+            instance.recipients.set(recipients)
+            instance.save()
+            
             # send_email_to_assigned_user.delay(
             #     recipients,
             #     opportunity_object.id,

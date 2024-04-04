@@ -20,6 +20,7 @@ class Opportunity(BaseModel):
         blank=True,
         null=True,
     )
+    # lead ref
     stage = models.CharField(
         pgettext_lazy("Stage of Opportunity", "Stage"), max_length=64, choices=STAGES
     )

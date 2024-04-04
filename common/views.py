@@ -921,7 +921,9 @@ class GoogleLoginView(APIView):
 class LoginSetup(View):
     def get(self, request):
         client_id = '514957663500-l9eugamcqa0o60lpgtmajvp6t41hgt63.apps.googleusercontent.com' # localhost
-        redirect_uri = 'http://127.0.0.1:8000/api/callback'
+        # redirect_uri = f'http://127.0.0.1:8000/api/callback'
+        redirect_uri = f'https://api.yorcrm.com/api/callback'
+        print(redirect_uri)
         # client_id = '514957663500-6hs1qqbfltmaenpt3a27g7rlq0tgc4q6.apps.googleusercontent.com'
         # redirect_uri = 'http://127.0.0.1:5500/callback.html'
         # redirect_uri = 'https://whatsappcrm.pythonanywhere.com/web/callback.html'
