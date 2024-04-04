@@ -2,7 +2,7 @@ from channels.db import database_sync_to_async
 from django.conf import settings
 from common.models import Profile
 import urllib.parse
-import jwt
+import jwt, logging
 
 
 @database_sync_to_async
@@ -17,6 +17,7 @@ class SocketAuthMiddleware:
     def __init__(self, app):
         # Store the ASGI application we were passed
         self.app = app
+        self.logger = logging.getLogger(__name__)
 
     async def __call__(self, scope, receive, send):
 
@@ -32,15 +33,23 @@ class SocketAuthMiddleware:
             org = None
         
         if not token or not org:
+            self.logger.error("Token or org is missing")
             return await send({"type": "websocket.close","code": 401})
         try:
+            print(token, "token")
+            print(org, "org")
+
             decoded = jwt.decode(token, (settings.SECRET_KEY), algorithms=[settings.JWT_ALGO])
+            print(decoded, "decoded")
             user_id = decoded['user_id']
             profile = await get_user(user_id, org)
             if profile:
                 scope['user_id'] = profile.id
+                self.logger.info("User authenticated successfully")
                 return await self.app(scope, receive, send)
             else:
+                self.logger.error("User not found")
                 return await send({"type": "websocket.close","code": 401})
         except:
+            self.logger.error("Error decoding token")
             return await send({"type": "websocket.close","code": 500})
