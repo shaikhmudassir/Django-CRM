@@ -11,46 +11,35 @@
     {{ room_name|json_script:"room-name" }}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzEyMzAyOTc0LCJpYXQiOjE3MTIyMTY1NzQsImp0aSI6IjBhNDE3YTFjOGQzOTQyYzI4ZGFkODk4YmExOTNkN2I0IiwidXNlcl9pZCI6IjQzMDYwZDNhLTc0YjgtNDU4OC1hNmEzLTFhMzM5NTIyY2MxZiJ9.WFCdqPMWmiBmlclBLn6Q0nHGc0dtpBeiUKd4JyHOb40';
+        const org = '3650dad3-5670-49ee-ab5c-e490a2c791bf';
         const chatSocket = new WebSocket(
             'ws://'
             + window.location.host
             + '/ws/chat/'
             + roomName
             + '/'
+            + '?token=' 
+            + token
+            + '&org='
+            + org
         );
 
-        chatSocket.onopen = function() {
-            const message = JSON.stringify({
-            type: "authentication", // Clearly identify message type
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MDAwNzY4LCJpYXQiOjE3MDc5MTQzNjgsImp0aSI6IjMxZGY1OGE2ZjY0MTQ5ZjM4MjBhMWJhYzNjODAyZjE5IiwidXNlcl9pZCI6IjRhY2QyNWYxLWZmNzItNDQzMC05ZmZmLTI2OTAzNjljYTAwMSJ9.ky7Va-PPI1BMW4aM3frdlmPgQGRyamrZX1Fj8kMTngg",  // Enclose token in a secure object
-            org: "3650dad3-5670-49ee-ab5c-e490a2c791bf",
-            message: "Authentication"
-            });
-            chatSocket.send(message);
+        chatSocket.onmessage = function(event) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
         };
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            if (data.type === "authenticated") {
-            console.log("Authentication successful!");
-            // Proceed with authorized communication
-            } else if (data.type === "error") {
-            console.error("Authentication failed:", data.message);
-            // Handle authentication failure (e.g., close connection)
-            } else {
-            console.warn("Unexpected message type:", data.type);
-            }
-            document.querySelector('#chat-log').value += (data.message + '\n');
+        chatSocket.onopen = function(e) {
+            console.log('WebSocket connection opened');
         };
 
         chatSocket.onerror = function(error) {
             console.error("WebSocket error:", error);
-            // Handle other errors (e.g., network issues)
         };
 
         chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
+            console.error('Chat socket closed unexpectedly', e);
         };
 
         document.querySelector('#chat-message-input').focus();
@@ -71,3 +60,9 @@
     </script>
 </body>
 </html>
+
+<!-- ,
+[
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzEyMjI0NDY5LCJpYXQiOjE3MTIxMzgwNjksImp0aSI6ImMxMzU1Y2YxYjA1NjQ0MDc4ZDRmZmQ0OWMxZjQ4MGM2IiwidXNlcl9pZCI6IjQzMDYwZDNhLTc0YjgtNDU4OC1hNmEzLTFhMzM5NTIyY2MxZiJ9.rpRsRxO33-3ypQ9l9dbdI_XAQl-py0HWKIJwJTXRHlM',
+    '3650dad3-5670-49ee-ab5c-e490a2c791bf'
+] -->

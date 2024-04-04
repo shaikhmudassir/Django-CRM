@@ -34,8 +34,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = True
 
 
-# ALLOWED_HOSTS = ["127.0.0.1", "44.203.118.198", "0.0.0.0", "ec2-44-203-118-198.compute-1.amazonaws.com", "api.yorcrm.com"]
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["127.0.0.1", "44.203.118.198", "0.0.0.0", "ec2-44-203-118-198.compute-1.amazonaws.com", "api.yorcrm.com"]
 
 INSTALLED_APPS = [
     "daphne",
