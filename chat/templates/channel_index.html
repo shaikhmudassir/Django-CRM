@@ -7,7 +7,9 @@
 </head>
 <body>
     What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
+    <input id="room-name-input" type="text" size="100" placeholder="WA_ID"><br>
+    <input id="token" type="text" size="300" placeholder="token"><br>
+    <input id="org" type="text" size="100" placeholder="org"><br>
     <input id="room-name-submit" type="button" value="Enter">
 
     <script>
@@ -20,6 +22,12 @@
 
         document.querySelector('#room-name-submit').onclick = function(e) {
             var roomName = document.querySelector('#room-name-input').value;
+            var token = document.querySelector('#token').value;
+            var org = document.querySelector('#org').value;
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('org', org);
+
             window.location.pathname = '/api/chat/channel/' + roomName + '/';
         };
     </script>
