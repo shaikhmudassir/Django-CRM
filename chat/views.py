@@ -211,6 +211,7 @@ class ReceiveMessageView(View):
                     }
                     serializer = MessageSerializer(data=message_data)
                     if serializer.is_valid():
+                        print("Message saved")
                         serializer.save()
                         return HttpResponse(status=status.HTTP_200_OK)
                     else:
