@@ -26,7 +26,7 @@ class WhatsappContactsView(APIView):
 
     @extend_schema(parameters=swagger_params.organization_params)
     def get(self, request):
-        contacts = WhatsappContacts.objects.all()
+        contacts = WhatsappContacts.objects.filter(lead__org=request.profile.org)
         serializer = WhatsappContactsSerializer(contacts, many=True)
         return Response(serializer.data)
 
@@ -267,6 +267,7 @@ class ReceiveMessageView(View):
             else:
                 delivery = self.messenger.get_delivery(data)
                 if delivery:
+                    WhatsappContacts.objects.filter(number=delivery).update(messageStatus=delivery)
                     print(f"Message : {delivery}")
                 else:
                     print("No new message")

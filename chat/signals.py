@@ -7,7 +7,7 @@
 
 
 from django.db.models.signals import post_save
-from .models import Messages
+from .models import Messages, WhatsappContacts
 from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -23,6 +23,8 @@ def create_profile(sender, instance, created, **kwargs):
             async_to_sync(channel_layer.group_send)(room_name, {"type": "send_message", "message": instance.message})
         else:
             async_to_sync(send_whatsapp_message)(instance)
+        
+        WhatsappContacts.objects.filter(wa_id=instance.number.wa_id).update(last_message=instance.message)
 
 async def send_whatsapp_message(instance):
     if instance.message == '/flight':
