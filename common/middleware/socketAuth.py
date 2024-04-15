@@ -21,6 +21,11 @@ class SocketAuthMiddleware:
 
     async def __call__(self, scope, receive, send):
 
+        print("SocketAuthMiddleware")
+        print(scope)
+        print(receive)
+        print(send)
+        
         token = None
         org = None
         try:
@@ -35,6 +40,10 @@ class SocketAuthMiddleware:
         if not token or not org:
             self.logger.error("Token or org is missing")
             return await send({"type": "websocket.close","code": 401})
+        
+        print(token)
+        print(org)
+        
         try:
 
             decoded = jwt.decode(token, (settings.SECRET_KEY), algorithms=[settings.JWT_ALGO])
