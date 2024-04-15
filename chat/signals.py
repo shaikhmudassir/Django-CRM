@@ -18,13 +18,9 @@ from .message_helper import get_templated_message_input, get_text_message_input,
 def create_profile(sender, instance, created, **kwargs):
     if created:
         if instance.isOpponent:
-            print("Opponent message")
             channel_layer = get_channel_layer()
-            print("Channel layer")
             room_name = "chat_" + str(instance.number.wa_id)
-            print("Room name")
-            async_to_sync(channel_layer.group_send)(room_name, {"type": "chat_message", "message": instance.message})
-            print("Group message send")
+            async_to_sync(channel_layer.group_send)(room_name, {"type": "send_message", "message": instance.message})
         else:
             async_to_sync(send_whatsapp_message)(instance)
 
