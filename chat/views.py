@@ -266,8 +266,10 @@ class ReceiveMessageView(View):
                     print(data)
             else:
                 delivery = self.messenger.get_delivery(data)
+                number = '+' + new_message
                 if delivery:
-                    WhatsappContacts.objects.filter(number=delivery).update(messageStatus=delivery)
+                    WhatsappContacts.objects.filter(number=number).update(messageStatus=delivery)
+
                     print(f"Message : {delivery}")
                 else:
                     print("No new message")
