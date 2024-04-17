@@ -101,9 +101,7 @@ class WhatsappBulkContactsView(APIView):
             
             lead = Lead.objects.get(phone=number)
             contact = Contact.objects.get(mobile_number=number)
-            print("Yaha tak aa gai bhai sahab")
             WhatsappContacts.objects.create(lead=lead, contact=contact, name=first_name, number=number, wa_id=wa_id)
-            print("Areeee! yaha tak bhi aa gai?")
         return Response({'message':'Contacts added successfully'}, status=status.HTTP_201_CREATED)
     
 class OrgWhatsappMappingView(APIView):
@@ -383,7 +381,6 @@ class BulkMessageSendingView(APIView):
             elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
                 response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
             else:
-                print("ye bhi run hua katte")
                 response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
                 
             message_data = {
