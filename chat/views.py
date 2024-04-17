@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from django.http import HttpResponse
 from .models import Messages
@@ -411,3 +411,14 @@ class IndexView(View):
 class RoomView(View):
     def get(self, request, room_name):
         return render(request, "room.html", {"room_name": room_name})
+    
+class ConnectMetaView(APIView):
+    def get(self, request):
+        url = "https://www.facebook.com/v19.0/dialog/oauth"
+        params = {
+            "client_id": "2159484790917395",
+            "redirect_uri": "https://api.yorcrm.com/",
+            "config_id": "766809475423698",
+            "response_type": "code"
+        }
+        return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
