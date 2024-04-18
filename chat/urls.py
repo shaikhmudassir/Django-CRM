@@ -13,6 +13,7 @@ urlpatterns = [
     path('channel/<str:room_name>/', RoomView.as_view(), name='room'),
     path('send/bulk/', BulkMessageSendingView.as_view(), name='send-bulk'),
     path('connect-meta/', ConnectMetaView.as_view(), name='connect-meta'),
+    path('connect-redirect/', ConnectRedirectView.as_view(), name='connect-redirect'),
     # path('send/', SendMessageView.as_view(), name='send'),
     # path('chat/', DisplayChatView.as_view(), name='chat'),
     # path('contacts/', ContactListView.as_view(), name='contacts'),

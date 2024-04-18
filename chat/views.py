@@ -414,19 +414,37 @@ class RoomView(View):
     
 class ConnectMetaView(APIView):
     def get(self, request):
-        url = "https://www.facebook.com/v19.0/dialog/oauth"
+        # Facebook's OAuth 2.0 endpoint for requesting an access token
+        oauth2_endpoint = 'https://www.facebook.com/v19.0/dialog/oauth'
+
+        # Parameters to pass to the OAuth 2.0 endpoint.
         params = {
-            "app_id": "2159484790917395",
-            "client_id": "2159484790917395",
-            "display": "popup",
-            "domain": "api.yorcrm.com",
-            "e2e": "%7B%7D",
-            "extras": "%7B%22feature%22%3A%22whatsapp_embedded_signup%22%7D",
-            "response_type": "token%2Csigned_request%2Cgraph_domain",
-            "scope": "business_management%2Cwhatsapp_business_management",
-            "redirect_uri": "https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Dffde82a917eeece5f%26domain%3Dapi.yorcrm.com%26is_canvas%3Dfalse%26origin%3Dhttps%253A%252F%252Fapi.yorcrm.com%252F%26relation%3Dopener%26frame%3Dfac6f6981bcd82c81",
-            "fallback_redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
-            "version": "v19.0",
-            "sdk": "joey"
+            'client_id': '2159484790917395',
+            'redirect_uri': 'https://api.yorcrm.com/api/chat/connect-redirect/',
+            'response_type': 'code',
+            'config_id': '766809475423698',
+            'state': 'pass-through'
         }
-        return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
+
+        # Construct the OAuth URL with parameters
+        return redirect(oauth2_endpoint + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
+        # url = "https://www.facebook.com/v19.0/dialog/oauth"
+        # params = {
+        #     "app_id": "2159484790917395",
+        #     "client_id": "2159484790917395",
+        #     "display": "popup",
+        #     "domain": "api.yorcrm.com",
+        #     "e2e": "%7B%7D",
+        #     "extras": "%7B%22feature%22%3A%22whatsapp_embedded_signup%22%7D",
+        #     "response_type": "token%2Csigned_request%2Cgraph_domain",
+        #     "scope": "business_management%2Cwhatsapp_business_management",
+        #     "redirect_uri": "https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Dffde82a917eeece5f%26domain%3Dapi.yorcrm.com%26is_canvas%3Dfalse%26origin%3Dhttps%253A%252F%252Fapi.yorcrm.com%252F%26relation%3Dopener%26frame%3Dfac6f6981bcd82c81",
+        #     "fallback_redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
+        #     "version": "v19.0",
+        #     "sdk": "joey"
+        # }
+        # return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
+
+class ConnectRedirectView(APIView):
+    def get(self, request):
+        return HttpResponse(request.GET)
