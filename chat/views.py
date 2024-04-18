@@ -422,7 +422,6 @@ class ConnectMetaView(APIView):
             'client_id': '2159484790917395',
             'redirect_uri': 'https://api.yorcrm.com/api/chat/connect-redirect/',
             'response_type': 'code',
-            'config_id': '766809475423698',
             'state': 'pass-through'
         }
 
