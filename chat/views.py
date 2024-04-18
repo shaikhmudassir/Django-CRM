@@ -416,9 +416,16 @@ class ConnectMetaView(APIView):
     def get(self, request):
         url = "https://www.facebook.com/v19.0/dialog/oauth"
         params = {
-            "client_id": "2159484790917395",
-            "redirect_uri": "https://api.yorcrm.com/",
-            "config_id": "766809475423698",
-            "response_type": "code"
+            "app_id": "2159484790917395",
+            "client_id": "191062257579887",
+            "display": "popup",
+            "domain": "api.yorcrm.com",
+            "e2e": "%7B%7D",
+            "extras": "%7B%22feature%22%3A%22whatsapp_embedded_signup%22%7D",
+            "response_type": "token%2Csigned_request%2Cgraph_domain",
+            "scope": "business_management%2Cwhatsapp_business_management",
+            "redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
+            "fallback_redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
+            "version": "v19.0"
         }
         return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
