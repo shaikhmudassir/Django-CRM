@@ -71,7 +71,7 @@ ROLES = (
 )
 
 LEAD_STATUS = (
-    ("not assigned", "Not Assigned")
+    ("not assigned", "Not Assigned"),
     ("assigned", "Assigned"),
     ("in process", "In Process"),
     ("converted", "Converted"),
