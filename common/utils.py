@@ -108,13 +108,6 @@ PRIORITY_CHOICE = (
 
 CASE_TYPE = (("Question", "Question"), ("Incident", "Incident"), ("Problem", "Problem"))
 
-# Enquiry Received
-# Qualification
-# Quotation Sent
-# Negotiation/Review
-# Closed Won
-# Closed Lost
-# Closed-Lost to Competition
 STAGES = (
     ("Enquiry Received", "Enquiry Received"),
     ("Qualification", "Qualification"),
