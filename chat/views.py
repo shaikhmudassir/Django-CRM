@@ -331,13 +331,10 @@ class BulkMessageSendingView(APIView):
         mapping_obj = OrgWhatsappMapping.objects.get(org=request.profile.org.id)
 
         data = request.data
-        list_of_numbers = data['list_of_numbers']
+        list_of_numberList = data['list_of_numberList']
         message = data['message']
         media_file = request.FILES.get('media_file')
         media_type = None
-
-        if list_of_numbers.count(',') > 1:
-            list_of_numbers = list_of_numbers.split(',')
 
         if media_file:
             extension = media_file.name.split('.')[1]
@@ -352,47 +349,50 @@ class BulkMessageSendingView(APIView):
             else:
                 return Response({'error':'Invalid media type'}, status=status.HTTP_400_BAD_REQUEST)
             
-            time = datetime.datetime.now()
-
-        
-        for wa_id in list_of_numbers:
-            whatsapp_number = WhatsappContacts.objects.get(wa_id=wa_id)
-            messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
-
-            if media_file:
-                attachment = Attachments()
-                attachment.created_by = User.objects.get(id=request.profile.user.id)
-                attachment.file_name = f"WA_IMG_{time.strftime('%Y%m%H%M%S')}.{extension}"
-                attachment.lead = whatsapp_number.lead
-                attachment.attachment = media_file
-                attachment.save()
+        time = datetime.datetime.now()
             
-            if data.get('components') is not None:
-                components = []
-                if data.get('components'):
-                    components.append(data['components'])
-                response = messenger.send_template("hello_world", whatsapp_number.number, components=components, lang="en_US")
-            elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
-                response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            elif media_type == 'video' and extension in ['mp4', 'mkv']:
-                response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
-                response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
-            elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
-                response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-            else:
-                response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
+        for list_of_numbers in list_of_numberList:
+            if list_of_numbers.count(',') > 1:
+                list_of_numbers = list_of_numbers.split(',')
+
+            for wa_id in list_of_numbers:
+                whatsapp_number = WhatsappContacts.objects.get(wa_id=wa_id)
+                messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
+
+                if media_file:
+                    attachment = Attachments()
+                    attachment.created_by = User.objects.get(id=request.profile.user.id)
+                    attachment.file_name = f"WA_IMG_{time.strftime('%Y%m%H%M%S')}.{extension}"
+                    attachment.lead = whatsapp_number.lead
+                    attachment.attachment = media_file
+                    attachment.save()
                 
-            message_data = {
-                'number': wa_id,
-                'message': message,
-                'isOpponent': False
-            }
-            serializer = MessageSerializer(data=message_data)
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                if data.get('components') is not None:
+                    components = []
+                    if data.get('components'):
+                        components.append(data['components'])
+                    response = messenger.send_template("hello_world", whatsapp_number.number, components=components, lang="en_US")
+                elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                    response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+                elif media_type == 'video' and extension in ['mp4', 'mkv']:
+                    response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+                elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
+                    response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
+                elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
+                    response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
+                else:
+                    response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
+                    
+                message_data = {
+                    'number': wa_id,
+                    'message': message,
+                    'isOpponent': False
+                }
+                serializer = MessageSerializer(data=message_data)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message':'Messages sent successfully'}, status=status.HTTP_201_CREATED) 
 
 class MessageListView(APIView):
@@ -415,35 +415,39 @@ class RoomView(View):
 class ConnectMetaView(APIView):
     def get(self, request):
         # Facebook's OAuth 2.0 endpoint for requesting an access token
-        oauth2_endpoint = 'https://www.facebook.com/v19.0/dialog/oauth'
+        # oauth2_endpoint = 'https://www.facebook.com/v19.0/dialog/oauth'
 
-        # Parameters to pass to the OAuth 2.0 endpoint.
-        params = {
-            'client_id': '2159484790917395',
-            'redirect_uri': 'https://api.yorcrm.com/api/chat/connect-redirect/',
-            'response_type': 'code',
-            'state': 'pass-through'
-        }
+        # # Parameters to pass to the OAuth 2.0 endpoint.
+        # params = {
+        #     'client_id': '2159484790917395',
+        #     'redirect_uri': 'https://api.yorcrm.com/api/chat/connect-redirect/',
+        #     'response_type': 'code',
+        #     'state': 'pass-through'
+        # }
 
         # Construct the OAuth URL with parameters
-        return redirect(oauth2_endpoint + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
-        # url = "https://www.facebook.com/v19.0/dialog/oauth"
-        # params = {
-        #     "app_id": "2159484790917395",
-        #     "client_id": "2159484790917395",
-        #     "display": "popup",
-        #     "domain": "api.yorcrm.com",
-        #     "e2e": "%7B%7D",
-        #     "extras": "%7B%22feature%22%3A%22whatsapp_embedded_signup%22%7D",
-        #     "response_type": "token%2Csigned_request%2Cgraph_domain",
-        #     "scope": "business_management%2Cwhatsapp_business_management",
-        #     "redirect_uri": "https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Dffde82a917eeece5f%26domain%3Dapi.yorcrm.com%26is_canvas%3Dfalse%26origin%3Dhttps%253A%252F%252Fapi.yorcrm.com%252F%26relation%3Dopener%26frame%3Dfac6f6981bcd82c81",
-        #     "fallback_redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
-        #     "version": "v19.0",
-        #     "sdk": "joey"
-        # }
-        # return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
+        # return redirect(oauth2_endpoint + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
+        url = "https://www.facebook.com/v19.0/dialog/oauth"
+        params = {
+            "app_id": "2159484790917395",
+            "client_id": "2159484790917395",
+            "display": "popup",
+            "domain": "api.yorcrm.com",
+            "e2e": "%7B%7D",
+            "extras": "%7B%22feature%22%3A%22whatsapp_embedded_signup%22%7D",
+            "response_type": "token%2Csigned_request%2Cgraph_domain",
+            "scope": "business_management%2Cwhatsapp_business_management",
+            "redirect_uri": "https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Dffde82a917eeece5f%26domain%3Dapi.yorcrm.com%26is_canvas%3Dfalse%26origin%3Dhttps%253A%252F%252Fapi.yorcrm.com%252F%26relation%3Dopener%26frame%3Dfac6f6981bcd82c81",
+            "fallback_redirect_uri": "https%3A%2F%2Fapi.yorcrm.com%2F",
+            "version": "v19.0",
+            "sdk": "joey"
+        }
+        return redirect(url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()]))
 
 class ConnectRedirectView(APIView):
     def get(self, request):
         return HttpResponse(request.GET)
+    
+class FacebookLoginView(View):
+    def get(self, request):
+        return render(request, "facebook.html")
