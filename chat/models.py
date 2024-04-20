@@ -54,3 +54,8 @@ class OrgWhatsappMapping(models.Model):
     id_admin_user = models.CharField(max_length=100, unique=True)
     def __str__(self):
         return self.whatsapp_number_id
+    
+class NumberList(models.Model):
+    org = models.ForeignKey(Org, on_delete=models.CASCADE)
+    title = models.CharField(max_length=64)
+    list_of_numbers = models.ManyToManyField(WhatsappContacts)

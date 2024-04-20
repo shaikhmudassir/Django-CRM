@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from chat.serializer import MessageSerializer
 from rest_framework.response import Response
-from .models import WhatsappContacts, Messages, OrgWhatsappMapping
+from .models import *
 from common.models import User, Attachments
-from .serializer import WhatsappContactsSerializer, OrgWhatsappMappingSerializer, AddNewWAContactSerializer, AddBulkContactSerializer, SendMediaSerializer, BulkMessageSendingSerializer
+from .serializer import *
 from rest_framework.parsers import MultiPartParser
 from chat import swagger_params
 from drf_spectacular.utils import extend_schema
@@ -19,6 +19,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.files.base import ContentFile
 from heyoo import WhatsApp
 import requests, json, logging, datetime
+
+logger = logging.getLogger(__name__)
 
 
 class WhatsappContactsView(APIView):
@@ -331,11 +333,11 @@ class BulkMessageSendingView(APIView):
         mapping_obj = OrgWhatsappMapping.objects.get(org=request.profile.org.id)
 
         data = request.data
-        list_of_numberList = data['list_of_numberList']
-        message = data['message']
+        ids_of_numberList = data['ids_of_numberList']
+        message = data.get('message', None)
         media_file = request.FILES.get('media_file')
         media_type = None
-
+        
         if media_file:
             extension = media_file.name.split('.')[1]
             if extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
@@ -350,39 +352,41 @@ class BulkMessageSendingView(APIView):
                 return Response({'error':'Invalid media type'}, status=status.HTTP_400_BAD_REQUEST)
             
         time = datetime.datetime.now()
-            
-        for list_of_numbers in list_of_numberList:
-            if list_of_numbers.count(',') > 1:
-                list_of_numbers = list_of_numbers.split(',')
+        list_of_numbers = list(NumberList.objects.filter(id__in=ids_of_numberList).values_list('list_of_numbers__wa_id', flat=True))
 
-            for wa_id in list_of_numbers:
-                whatsapp_number = WhatsappContacts.objects.get(wa_id=wa_id)
-                messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
+        for wa_id in list_of_numbers:
+            whatsapp_number = WhatsappContacts.objects.get(wa_id=wa_id)
+            messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
+            if media_file:
+                attachment = Attachments()
+                attachment.created_by = User.objects.get(id=request.profile.user.id)
+                attachment.file_name = f"WA_IMG_{time.strftime('%Y%m%H%M%S')}.{extension}"
+                attachment.lead = whatsapp_number.lead
+                attachment.attachment = media_file
+                attachment.save()
+                logger.info("Attachment saved: %s", attachment.file_name)
 
-                if media_file:
-                    attachment = Attachments()
-                    attachment.created_by = User.objects.get(id=request.profile.user.id)
-                    attachment.file_name = f"WA_IMG_{time.strftime('%Y%m%H%M%S')}.{extension}"
-                    attachment.lead = whatsapp_number.lead
-                    attachment.attachment = media_file
-                    attachment.save()
-                
-                if data.get('components') is not None:
-                    components = []
-                    if data.get('components'):
-                        components.append(data['components'])
-                    response = messenger.send_template("hello_world", whatsapp_number.number, components=components, lang="en_US")
-                elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
-                    response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-                elif media_type == 'video' and extension in ['mp4', 'mkv']:
-                    response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-                elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
-                    response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number)
-                elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
-                    response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number, caption=message)
-                else:
-                    response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
-                    
+            if data.get('components') is not None:
+                components = []
+                if data.get('components'):
+                    components.append(data['components'])
+                response = messenger.send_template("hello_world", whatsapp_number.number.split('+')[1], components=components, lang="en_US")
+                logger.info("Template message sent: %s", response)
+            elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number.split('+')[1], caption=message)
+                logger.info("Image sent: %s", response)
+            elif media_type == 'video' and extension in ['mp4', 'mkv']:
+                response = messenger.send_video(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number.split('+')[1], caption=message)
+                logger.info("Video sent: %s", response)
+            elif media_type == 'audio' and extension in ['mp3', 'wav', 'ogg']:
+                response = messenger.send_audio(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number.split('+')[1])
+                logger.info("Audio sent: %s", response)
+            elif media_type == 'document' and extension in ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'zip', 'rar', '7z']:
+                response = messenger.send_document(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number.split('+')[1], caption=message)
+                logger.info("Document sent: %s", response)
+            elif message:
+                response = messenger.send_message(message, whatsapp_number.number.split('+')[1])
+                logger.info("Message sent: %s", response)
                 message_data = {
                     'number': wa_id,
                     'message': message,
@@ -392,8 +396,56 @@ class BulkMessageSendingView(APIView):
                 if serializer.is_valid():
                     serializer.save()
                 else:
+                    logger.error("Failed to sent message: %s", serializer.errors)
                     return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                logger.error("Failed to sent message: Bad Request")
+                return Response({'error':'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message':'Messages sent successfully'}, status=status.HTTP_201_CREATED) 
+
+class NumberListsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params, request=NumberListSerializer)
+    def get(self, request):
+        number_list = NumberList.objects.filter(org=request.profile.org)
+        serializer = NumberListSerializer(number_list, many=True)
+        return Response(serializer.data)
+    
+    @extend_schema(parameters=swagger_params.organization_params, request=NumberListSerializer)
+    def post(self, request):
+        data = request.data
+        data['org'] = request.profile.org.id
+
+        serializer = NumberListSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class NumberListView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(parameters=swagger_params.organization_params)
+    def get(self, request, pk):
+        number_list = NumberList.objects.get(id=pk)
+        serializer = NumberListSerializer(number_list)
+        return Response(serializer.data)
+
+    @extend_schema(parameters=swagger_params.organization_params, request=NumberListSerializer)
+    def put(self, request, pk):
+        number_list = NumberList.objects.get(id=pk)
+        serializer = NumberListSerializer(number_list, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @extend_schema(parameters=swagger_params.organization_params)
+    def delete(self, request, pk):
+        number_list = NumberList.objects.get(id=pk)
+        number_list.delete()
+        return Response({'message':'Number list deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 class MessageListView(APIView):
     permission_classes = (IsAuthenticated,)

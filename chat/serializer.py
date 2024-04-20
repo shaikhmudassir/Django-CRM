@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import WhatsappContacts, Messages, OrgWhatsappMapping
+from .models import *
 
 class WhatsappContactsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,7 +44,12 @@ class SendMediaSerializer(serializers.Serializer):
     caption = serializers.CharField(max_length=1020) 
 
 class BulkMessageSendingSerializer(serializers.Serializer):
-    list_of_numberList = serializers.ListField(child=serializers.ListField(child=serializers.CharField(max_length=30)))
+    ids_of_numberList = serializers.ListField(child=serializers.CharField(max_length=35))
     message = serializers.CharField(max_length=1020)
     media_file = serializers.FileField()
     components = serializers.JSONField(required=False)
+
+class NumberListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NumberList
+        fields = '__all__'
