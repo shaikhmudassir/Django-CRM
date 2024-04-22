@@ -266,9 +266,11 @@ class ReceiveMessageView(View):
                     print(data)
             else:
                 delivery = self.messenger.get_delivery(data)
-                print("\n\n\n\nData: ", data, "\n\n\n\n")
                 if delivery:
-                    number = '+' + data["statuses"][0]["recipient_id"]
+                    preprocessed_data = self.messenger.preprocess(data)
+                    print(preprocessed_data["statuses"][0]["recipient_id"])
+                    if "statuses" in preprocessed_data:
+                        number = '+' + preprocessed_data["statuses"][0]["recipient_id"]
                     WhatsappContacts.objects.filter(number=number).update(messageStatus=delivery)
                     print(f"Message : {delivery}")
                 else:
