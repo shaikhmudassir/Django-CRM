@@ -917,23 +917,42 @@ class GoogleLoginView(APIView):
         response['refresh_token'] = str(token)
         response['user_id'] = user.id
         return Response(response)
+    
+class RegisterUserView(APIView):
+    """
+    User Registration
+    post: Returns token of logged In user
+    """
 
-class LoginSetup(View):
-    def get(self, request):
-        client_id = '514957663500-l9eugamcqa0o60lpgtmajvp6t41hgt63.apps.googleusercontent.com' # localhost
-        # redirect_uri = f'http://127.0.0.1:8000/api/callback'
-        redirect_uri = f'https://api.yorcrm.com/api/callback'
-        print(redirect_uri)
-        # client_id = '514957663500-6hs1qqbfltmaenpt3a27g7rlq0tgc4q6.apps.googleusercontent.com'
-        # redirect_uri = 'http://127.0.0.1:5500/callback.html'
-        # redirect_uri = 'https://whatsappcrm.pythonanywhere.com/web/callback.html'
-        response_type ='token'
-        scope = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
-        include_granted_scopes = 'true'
-        url = f'https://accounts.google.com/o/oauth2/v2/auth?client_id={client_id}&redirect_uri={redirect_uri}&response_type={response_type}&scope={scope}&include_granted_scopes={include_granted_scopes}'
-        return HttpResponseRedirect(url)
-        # return render(request, 'loginsetup.html')
+    @extend_schema(
+        description="User Registration",  request=RegisterUserSerializer,
+    )
+    def post(self, request):
+        serializer = RegisterUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
+    
+class LoginView(APIView):
 
-class Callback(View):
-    def get(self, request):
-        return render(request, 'callback.html')
+    @extend_schema(
+        description="User Login",  request=LoginSerializer,
+    )
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validate(request.data)
+            if user:
+                token = RefreshToken.for_user(user)
+                request.session['refresh_token'] = str(token)
+                request.session['id_admin_user'] = str(user.id)
+                response = {}
+                response['username'] = user.email
+                response['access_token'] = str(token.access_token)
+                response['refresh_token'] = str(token)
+                response['user_id'] = user.id
+                return Response(response)
+            else:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors)
