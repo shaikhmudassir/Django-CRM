@@ -71,11 +71,12 @@ ROLES = (
 )
 
 LEAD_STATUS = (
+    ("not assigned", "Not Assigned"),
     ("assigned", "Assigned"),
     ("in process", "In Process"),
     ("converted", "Converted"),
-    ("recycled", "Recycled"),
-    ("closed", "Closed"),
+    ("junk lead", "Junk Lead"),
+    ("lost lead", "Lost Lead"),
 )
 
 
@@ -108,15 +109,13 @@ PRIORITY_CHOICE = (
 CASE_TYPE = (("Question", "Question"), ("Incident", "Incident"), ("Problem", "Problem"))
 
 STAGES = (
-    ("QUALIFICATION", "QUALIFICATION"),
-    ("NEEDS ANALYSIS", "NEEDS ANALYSIS"),
-    ("VALUE PROPOSITION", "VALUE PROPOSITION"),
-    ("ID.DECISION MAKERS", "ID.DECISION MAKERS"),
-    ("PERCEPTION ANALYSIS", "PERCEPTION ANALYSIS"),
-    ("PROPOSAL/PRICE QUOTE", "PROPOSAL/PRICE QUOTE"),
-    ("NEGOTIATION/REVIEW", "NEGOTIATION/REVIEW"),
-    ("CLOSED WON", "CLOSED WON"),
-    ("CLOSED LOST", "CLOSED LOST"),
+    ("Enquiry Received", "Enquiry Received"),
+    ("Qualification", "Qualification"),
+    ("Quotation Sent", "Quotation Sent"),
+    ("Negotiation/Review", "Negotiation/Review"),
+    ("Closed Won", "Closed Won"),
+    ("Closed Lost", "Closed Lost"),
+    ("Closed-Lost to Competition", "Closed-Lost to Competition"),
 )
 
 SOURCES = (

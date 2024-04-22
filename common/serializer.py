@@ -6,6 +6,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from django.contrib.auth import authenticate
+from django.utils.crypto import get_random_string
 
 from common.models import (
     Address,
@@ -138,12 +140,22 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "profile_pic",
+            "password",
         )
 
     def __init__(self, *args, **kwargs):
         self.org = kwargs.pop("org", None)
         super().__init__(*args, **kwargs)
         self.fields["email"].required = True
+        self.fields["password"].required = False
+        self.fields["password"].default = get_random_string(10)
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data["email"],
+            password=validated_data["password"]
+        )
+        return user
 
     def validate_email(self, email):
         if self.instance:
@@ -378,4 +390,76 @@ class UserUpdateStatusSwaggerSerializer(serializers.Serializer):
 
     status = serializers.ChoiceField(choices = STATUS_CHOICES,required=True)
 
+class RegisterUserSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = User
+        fields = ["email", "password"]
+
+    def __init__(self, *args, **kwargs):
+        self.org = kwargs.pop("org", None)
+        super().__init__(*args, **kwargs)
+        self.fields["email"].required = True
+        self.fields["password"].required = True
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data["email"],
+            password=validated_data["password"]
+        )
+        return user
+    
+    def validate_email(self, email):
+        if self.instance:
+            if self.instance.email != email:
+                if not Profile.objects.filter(user__email=email, org=self.org).exists():
+                    return email
+                raise serializers.ValidationError("Email already exists")
+            return email
+        if not Profile.objects.filter(user__email=email.lower(), org=self.org).exists():
+            return email
+        raise serializers.ValidationError("Given Email id already exists")
+    
+    def validate_mobile(self, mobile):
+        if self.instance:
+            if self.instance.mobile != mobile:
+                if not Profile.objects.filter(mobile=mobile, org=self.org).exists():
+                    return mobile
+                raise serializers.ValidationError("Mobile number already exists")
+            return mobile
+        if not Profile.objects.filter(mobile=mobile, org=self.org).exists():
+            return mobile
+        raise serializers.ValidationError("Mobile number already exists")
+    
+    def validate_company_name(self, company_name):
+        if self.instance:
+            if self.instance.company_name != company_name:
+                if not Profile.objects.filter(company_name=company_name, org=self.org).exists():
+                    return company_name
+                raise serializers.ValidationError("Company name already exists")
+            return company_name
+        if not Profile.objects.filter(company_name=company_name, org=self.org).exists():
+            return company_name
+        raise serializers.ValidationError("Company name already exists")
+    
+    def validate_password(self, password):
+        if len(password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long")
+        return password
+    
+class LoginSerializer(serializers.Serializer):
+
+    email = serializers.CharField(max_length=1000,required=True)
+    password = serializers.CharField(max_length=1000,required=True)
+
+    def validate(self, data):
+        email = data.get("email")
+        password = data.get("password")
+        print(email, password, "email, password")
+        user = authenticate(email=email, password=password)
+        print(user, "user")
+        if user:
+            if not user.is_active:
+                raise serializers.ValidationError("User is not active")
+            return user
+        raise serializers.ValidationError("Invalid email or password")

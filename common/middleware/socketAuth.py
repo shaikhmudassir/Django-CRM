@@ -9,7 +9,7 @@ import jwt, logging
 def get_user(user_id, org):
     try:
         return Profile.objects.get(user_id=user_id, org=org, is_active=True)
-    except Profile.DoesNotExist:
+    except:
         return None
 
 class SocketAuthMiddleware:
@@ -21,6 +21,11 @@ class SocketAuthMiddleware:
 
     async def __call__(self, scope, receive, send):
 
+        print("SocketAuthMiddleware")
+        print(scope)
+        print(receive)
+        print(send)
+        
         token = None
         org = None
         try:
@@ -35,12 +40,13 @@ class SocketAuthMiddleware:
         if not token or not org:
             self.logger.error("Token or org is missing")
             return await send({"type": "websocket.close","code": 401})
+        
+        print(token)
+        print(org)
+        
         try:
-            print(token, "token")
-            print(org, "org")
 
             decoded = jwt.decode(token, (settings.SECRET_KEY), algorithms=[settings.JWT_ALGO])
-            print(decoded, "decoded")
             user_id = decoded['user_id']
             profile = await get_user(user_id, org)
             if profile:
@@ -50,6 +56,6 @@ class SocketAuthMiddleware:
             else:
                 self.logger.error("User not found")
                 return await send({"type": "websocket.close","code": 401})
-        except:
+        except Exception as e:
             self.logger.error("Error decoding token")
             return await send({"type": "websocket.close","code": 500})
