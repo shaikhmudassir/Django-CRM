@@ -20,7 +20,8 @@ def create_profile(sender, instance, created, **kwargs):
         if instance.isOpponent:
             channel_layer = get_channel_layer()
             room_name = "chat_" + str(instance.number.wa_id)
-            async_to_sync(channel_layer.group_send)(room_name, {"type": "send_message", "message": instance.message})
+            message = {"msg": instance.message, "received": True}
+            async_to_sync(channel_layer.group_send)(room_name, {"type": "send_message", "message": message})
         else:
             async_to_sync(send_whatsapp_message)(instance)
         

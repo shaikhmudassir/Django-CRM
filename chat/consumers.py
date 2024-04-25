@@ -34,10 +34,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        message = {"msg": message, "received": False}
 
         await self.save_message(message)
         await self.channel_layer.group_send(
-            self.room_group_name, {"type": "send_message", "message": message}
+            self.room_group_name, {"type": "send_message", "message": message, "received": False}
         )
         logger.info(f"Channels: Received message in room: {self.room_name}")
 
