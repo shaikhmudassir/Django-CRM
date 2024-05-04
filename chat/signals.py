@@ -12,7 +12,8 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .message_helper import get_templated_message_input, get_text_message_input, send_message
- 
+from .models import OrgWhatsappMapping
+from heyoo import WhatsApp
  
 @receiver(post_save, sender=Messages) 
 def create_profile(sender, instance, created, **kwargs):
@@ -32,5 +33,8 @@ async def send_whatsapp_message(instance):
         template_data = get_templated_message_input(instance.number.number, {'origin':'Mumbai', 'destination':'Delhi', 'time':'10:00 AM'})
         await send_message(template_data)
     else:
-        data = get_text_message_input(instance.number.number, instance.message)
-        await send_message(data)
+        mapping_obj = OrgWhatsappMapping.objects.filter(org=instance.number.lead.org).first()
+        messenger = WhatsApp(mapping_obj.permanent_token, mapping_obj.whatsapp_number_id)
+        messenger.send_message(instance.message, instance.number.number)
+        # data = get_text_message_input(instance.number.number, instance.message)
+        # await send_message(data)
