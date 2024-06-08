@@ -16,7 +16,6 @@ urlpatterns = [
     path('number-list/<str:pk>/', NumberListView.as_view(), name='number-list'),
     path('connect-meta/', ConnectMetaView.as_view(), name='connect-meta'),
     path('connect-redirect/', ConnectRedirectView.as_view(), name='connect-redirect'),
-    path('facebook-login/', FacebookLoginView.as_view(), name='facebook'),
     # path('send/', SendMessageView.as_view(), name='send'),
     # path('chat/', DisplayChatView.as_view(), name='chat'),
     # path('contacts/', ContactListView.as_view(), name='contacts'),

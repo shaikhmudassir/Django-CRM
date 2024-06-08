@@ -34,7 +34,8 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["127.0.0.1", "44.203.118.198", "0.0.0.0", "ec2-44-203-118-198.compute-1.amazonaws.com", "api.yorcrm.com", "localhost", "d1w4yag0hs79qg.cloudfront.net"]
+# ALLOWED_HOSTS = ["127.0.0.1", "44.203.118.198", "0.0.0.0", "ec2-44-203-118-198.compute-1.amazonaws.com", "api.yorcrm.com", "localhost", "d1w4yag0hs79qg.cloudfront.net"]
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "daphne",
@@ -175,7 +176,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django_ses.SESBackend"
 
 AUTH_USER_MODEL = "common.User"
 

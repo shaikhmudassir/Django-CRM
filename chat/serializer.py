@@ -45,9 +45,10 @@ class SendMediaSerializer(serializers.Serializer):
 
 class BulkMessageSendingSerializer(serializers.Serializer):
     ids_of_numberList = serializers.ListField(child=serializers.CharField(max_length=35))
+    template = serializers.CharField(max_length=1020)
     message = serializers.CharField(max_length=1020)
     media_file = serializers.FileField()
-    components = serializers.JSONField(required=False)
+    components = serializers.JSONField()
 
 class NumberListSerializer(serializers.ModelSerializer):
     class Meta:

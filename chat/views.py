@@ -333,6 +333,7 @@ class BulkMessageSendingView(APIView):
         mapping_obj = OrgWhatsappMapping.objects.get(org=request.profile.org.id)
 
         data = request.data
+        template = data.get('template', None)
         ids_of_numberList = data['ids_of_numberList']
         message = data.get('message', None)
         media_file = request.FILES.get('media_file')
@@ -366,11 +367,12 @@ class BulkMessageSendingView(APIView):
                 attachment.save()
                 logger.info("Attachment saved: %s", attachment.file_name)
 
-            if data.get('components') is not None:
+            if template:
                 components = []
                 if data.get('components'):
                     components.append(data['components'])
-                response = messenger.send_template("hello_world", whatsapp_number.number.split('+')[1], components=components, lang="en_US")
+                    # print(components)
+                response = messenger.send_template(template, whatsapp_number.number.split('+')[1], components=components, lang="en_US")
                 logger.info("Template message sent: %s", response)
             elif media_type == 'image' and extension in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
                 response = messenger.send_image(request.META['HTTP_HOST'] + attachment.attachment.url, whatsapp_number.number.split('+')[1], caption=message)

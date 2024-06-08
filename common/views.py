@@ -54,6 +54,7 @@ from common.tasks import (
     send_email_user_delete,
 )
 from common.token_generator import account_activation_token
+from django.core.mail import send_mail
 
 # from rest_framework_jwt.serializers import jwt_encode_handler
 from common.utils import COUNTRIES, ROLES, jwt_payload_handler
@@ -132,10 +133,13 @@ class UsersListView(APIView, LimitOffsetPagination):
                         org=request.profile.org,
                     )
 
-                    # send_email_to_new_user.delay(
-                    #     profile.id,
-                    #     request.profile.org.id,
-                    # )
+                    send_mail(
+                        "Invitation to join CRM",
+                        "You have been invited to join CRM",
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
                     return Response(
                         {"error": False, "message": "User Created Successfully"},
                         status=status.HTTP_201_CREATED,
